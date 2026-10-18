@@ -32,7 +32,7 @@ Configuration, in the project's `.claude/cpp-conventions.json` (all optional):
 
 Advisory by default. `"block": true` makes that scanner stop the write (stderr, exit 2). A finding is silenced on the line with `// copy-ok: <ownership boundary>` or `// magic-ok: <where the number comes from>`; the reason is required. `CPP_CONVENTIONS_OFF=1` switches the hook off. The hook never fails an edit: any error in it exits 0.
 
-The hook treats `.claude/cpp-conventions.json` and the edited source as untrusted. Only booleans and numbers are read from the config; an invalid value is ignored and the report says so without quoting it. Source text is never quoted: findings carry fixed sentences with at most a plain identifier, a number or a safe file name substituted.
+The hook treats `.claude/cpp-conventions.json` and the edited source as untrusted. Only booleans and numbers are read from the config. A config that cannot be read keeps the defaults and the report adds one fixed sentence; wrong-typed keys are ignored and named by their fixed key name only (`copies.block`). Source text is never quoted: findings are fixed sentences with at most an identifier (64 characters, `[A-Za-z0-9_:<>]`, otherwise `(name)`), a number or a safe file name substituted. The cppreference helper accepts only `https://en.cppreference.com` pages and `cpp/...` or `c/...` paths, never an argument with a leading dash or `..`, keeps cache files inside the cache directory, and prints page excerpts as capped `quoted data`. `tests/test_untrusted.py` feeds instruction-shaped config, source, file names, topics and cached pages and asserts none of it appears in the output.
 
 Pairs with the separate `tidy-agent` plugin, which runs clang-tidy on every edit. This plugin does not run clang-tidy and does not duplicate that hook: the scanners read text, clang-tidy reads types.
 
@@ -53,6 +53,15 @@ sh plugins/cpp-conventions/tests/run.sh
 - `tests/optional/` - mp-units fixtures, run when `MP_UNITS_DIR` points at a v2.x checkout or `WROCPP_NETWORK=1` lets the runner clone the pinned tag.
 - `tests/setup.sh` installs the Debian/Ubuntu dependencies (for the `gcc:16` image).
 
+## What the last verification pass covered
+
+Run on commit `1620d56` (code identical to the tip; later commits change this README only):
+
+- Run on the Mac (GCC 16.2, Apple clang 21, clang 21/22/23) and in Docker `gcc:16` with Debian clang 19.1.7, both with `WROCPP_CI=1`: all unit tests, the untrusted-input tests, the 40 compiler fixtures.
+- Also run on both with `WROCPP_NETWORK=1`: the live cppreference.com fetch test and the mp-units v2.5.0 fixtures (cloned). Clang 19 skips the mp-units fixtures by design.
+
+NOT run, so treat as unverified: Clang 17 and older and any GCC older than 16 (not installed; the Apple-clang-silent claim covers only Apple clang 21); the cppreference redirect guard against a real cross-host redirect (a mocked response is tested); Python older than 3.13; any non-macOS, non-Debian host; the live-network and mp-units runs are not part of the default `tests/run.sh` and are not re-run in CI unless `WROCPP_NETWORK=1` is set.
+
 ## Layout
 
 ```
@@ -66,7 +75,7 @@ skills/
   units/                  SKILL.md, references/mp-units.md
   no-magic-numbers/       SKILL.md, references/scanner.md
 tests/                    run.sh, setup.sh, check_fixtures.py, test_scripts.py,
-                          fixtures/, hook-probes/, optional/
+                          test_untrusted.py, fixtures/, hook-probes/, optional/
 ```
 
 Licence: MIT. The text, scanners and fixtures are original; rules cite public references (cppreference.com, the C++ standard, compiler documentation) rather than copying them.
