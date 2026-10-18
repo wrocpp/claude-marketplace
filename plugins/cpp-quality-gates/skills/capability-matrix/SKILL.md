@@ -13,12 +13,18 @@ tests/capabilities/
   absent/static_reflection.cpp        must NOT compile (today)
 ```
 
+Copy the module into the project once, so the build does not depend on where the plugin is installed:
+
+```sh
+mkdir -p cmake && cp "${CLAUDE_PLUGIN_ROOT}/templates/CapabilityMatrix.cmake" cmake/
+```
+
 ```cmake
-include(templates/CapabilityMatrix.cmake)
+include(cmake/CapabilityMatrix.cmake)
 capability_matrix(DIR tests/capabilities FLAGS -std=c++20)   # ctest -L capability
 ```
 
-Without CMake: `scripts/capability_matrix.sh COMPILER DIR [FLAGS...]` (prints `ok`/`FAIL` per probe, exit 1 on any surprise).
+Without CMake: `${CLAUDE_PLUGIN_ROOT}/scripts/capability_matrix.sh COMPILER DIR [FLAGS...]` (prints `ok`/`FAIL` per probe, exit 1 on any surprise).
 
 ## Rules
 
@@ -26,7 +32,7 @@ Without CMake: `scripts/capability_matrix.sh COMPILER DIR [FLAGS...]` (prints `o
 - `supported/` pins what you rely on. `absent/` pins what you work around: it fails to compile today, and the day a compiler accepts it, the test (CMake `WILL_FAIL`) goes red and says the workaround can be removed.
 - Probes are `-fsyntax-only`: they prove the front end accepts the spelling, not that code generation or linking works. Put run-time behaviour in unit tests.
 - Gate on the feature, not the version: a probe may `#ifndef __cpp_...` / `#error` to document the feature-test macro it expects.
-- Run the matrix on the pinned compiler in CI and on the newest released one nightly (`templates/github-actions.yml`, job `capabilities-newest-gcc`).
+- Run the matrix on the pinned compiler in CI and on the newest released one nightly (`${CLAUDE_PLUGIN_ROOT}/templates/github-actions.yml`, job `capabilities-newest-gcc`).
 - Bump nothing without the matrix: a compiler upgrade is a green matrix plus the main build.
 
 ## Evidence

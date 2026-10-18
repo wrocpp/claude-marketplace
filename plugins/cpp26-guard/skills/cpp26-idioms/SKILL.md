@@ -6,7 +6,7 @@ allowed-tools: Bash, Read, Grep, Edit
 
 # C++26 idioms
 
-`scripts/cpp26_lint.py` enforces the rules below and a PreToolUse hook reads the text you are about to write and names the rule; its message is the replacement to apply. Names that repeat a type belong to the sibling skill `reflect-dont-hand-write`.
+`${CLAUDE_PLUGIN_ROOT}/scripts/cpp26_lint.py` enforces the rules below and a PreToolUse hook reads the text you are about to write and names the rule; its message is the replacement to apply. Names that repeat a type belong to the sibling skill `reflect-dont-hand-write`.
 
 ## Rules with the replacement
 

@@ -5,10 +5,10 @@ description: Use before opening a merge request that changes C++ source, when as
 
 # Mutation testing
 
-A mutant is the source with one small edit (`<` to `<=`, `+` to `-`, a deleted statement). If the tests still pass, that edit is a bug they cannot see. `scripts/mutate.py` mutates one file with universalmutator, builds and tests each mutant, and prints a verdict per mutant.
+A mutant is the source with one small edit (`<` to `<=`, `+` to `-`, a deleted statement). If the tests still pass, that edit is a bug they cannot see. `${CLAUDE_PLUGIN_ROOT}/scripts/mutate.py` mutates one file with universalmutator, builds and tests each mutant, and prints a verdict per mutant.
 
 ```sh
-scripts/mutate.sh src/foo.cpp --build "cmake --build build/mutate" --test "ctest --test-dir build/mutate" --changed-lines origin/main
+"${CLAUDE_PLUGIN_ROOT}/scripts/mutate.sh" src/foo.cpp --build "cmake --build build/mutate" --test "ctest --test-dir build/mutate" --changed-lines origin/main
 ```
 
 (`mutate.sh` creates a venv with universalmutator when `mutate` is not on PATH; `mutate.py` needs it installed. `--build` and `--test` are split into an argument list and run without a shell; a command with `; | & $ ` < > ( )`, a backslash or a newline is refused. `mutation.build_dir` with `mutation.targets` and `mutation.tests` in `.claude/cpp-quality-gates.json` runs `cmake --build DIR --target ...` and `ctest --test-dir DIR -R ...` instead.
@@ -44,4 +44,4 @@ or `Mutation: none, because <reason>` (docs-only change, no testable behaviour).
 
 Mutants are regex edits, not AST edits, so **many do not compile**: in the bundled sample 34 of 60 were uncompilable and give no signal. Code that mutants break at compile time (templates with concepts, `constexpr` guarded by `static_assert`) is checked by the compiler, not by the run time tests: report it as such, never as "killed by tests". A file with few runnable mutants says little; a score is a list of questions, not a grade.
 
-Formats, flags, evidence: [references/harness.md](references/harness.md). The triage file format: `templates/mutation_triage.txt`.
+Formats, flags, evidence: [references/harness.md](references/harness.md). The triage file format: `${CLAUDE_PLUGIN_ROOT}/templates/mutation_triage.txt`.

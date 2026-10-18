@@ -86,7 +86,7 @@
     {
       "name": "cpp-modules",
       "source": "./plugins/cpp-modules",
-      "description": "Use import std and named modules with CMake and GCC 16: the experimental gate, a working template project and the traps that cost hours, each reproduced by a fixture.",
+      "description": "Use import std and named C++ modules with CMake and GCC 16: cmake-import-std (the experimental gate per CMake release and the error of each wrong setup), module-traps (compiler crashes, link errors and include conflicts, each reproduced by a fixture or recorded as not reproduced) and modules-starter (a working template with presets and tests).",
       "version": "0.1.0",
       "author": {
         "name": "Wro.cpp",
@@ -95,10 +95,13 @@
       "license": "MIT",
       "keywords": [
         "cpp",
+        "cpp26",
         "modules",
         "import-std",
         "cmake",
-        "gcc"
+        "gcc",
+        "gcc-16",
+        "ninja"
       ]
     },
     {

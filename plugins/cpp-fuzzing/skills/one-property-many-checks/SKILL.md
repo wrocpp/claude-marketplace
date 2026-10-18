@@ -55,14 +55,14 @@ UBSan on the replay binary found that one.
 
 ## Layout and the working starter
 
-`${CLAUDE_PLUGIN_ROOT}/templates/fuzz-starter/` is a complete CMake project (GCC 16, C++26, no
+`"${CLAUDE_PLUGIN_ROOT}/templates/fuzz-starter/"` is a complete CMake project (GCC 16, C++26, no
 dependencies): a pure list parser, two property functions in `include/fuzz_starter/properties.hpp`,
 one harness each, a corpus, the corpus-replay and exhaustive targets, and eight planted defects
 selected by `-DFUZZ_STARTER_PLANTED_BUG=<name>`. Copy it into the project rather than reinventing the
 CMake functions; `cmake/FuzzStarter.cmake` is 100 lines. Build and try a defect:
 
 ```bash
-cmake -S templates/fuzz-starter -B build -G Ninja -DCMAKE_CXX_COMPILER=g++-16 -DFUZZ_STARTER_PLANTED_BUG=null
+cmake -S ${CLAUDE_PLUGIN_ROOT}/templates/fuzz-starter -B build -G Ninja -DCMAKE_CXX_COMPILER=g++-16 -DFUZZ_STARTER_PLANTED_BUG=null
 cmake --build build --target unit_test && build/unit_test     # passes
 cmake --build build                                            # fails: dereferencing a null pointer
 ```

@@ -14,6 +14,10 @@ FRONTMATTER = re.compile(r"\A---\n(.*?)\n---\n", re.DOTALL)
 FIELD = re.compile(r"^(\w[\w-]*):\s*(.*)$", re.MULTILINE)
 REQUIRED_FILES = ("README.md", "LICENSE", "tests/run.sh")
 EXECUTABLE_SUFFIXES = (".sh", ".py")
+PLUGIN_ROOT = "${CLAUDE_PLUGIN_ROOT}/"
+BARE_PLUGIN_PATH = re.compile(r"(?<![\w/.}$-])(?:scripts|templates)/[A-Za-z0-9_][A-Za-z0-9_./-]*")
+ROOT_REFERENCE = re.compile(r"\$\{CLAUDE_PLUGIN_ROOT\}/([A-Za-z0-9_][A-Za-z0-9_./-]*)")
+SKILL_DIR_WALK = re.compile(r"\$\{CLAUDE_SKILL_DIR\}/\.\.")
 
 
 def fail(problems, message):
@@ -32,6 +36,23 @@ def check_skill(problems, plugin, skill):
         fail(problems, f"{where}: frontmatter name must equal the directory name {skill.parent.name!r}")
     if not fields.get("description"):
         fail(problems, f"{where}: frontmatter description is missing")
+
+
+def check_skill_paths(problems, skill, plugin_dir):
+    text = skill.read_text(encoding="utf-8")
+    where = skill.relative_to(ROOT)
+    for match in ROOT_REFERENCE.finditer(text):
+        target = match.group(1).rstrip(".,;:")
+        if not (plugin_dir / target).exists():
+            line = text.count("\n", 0, match.start()) + 1
+            fail(problems, f"{where}:{line}: ${{CLAUDE_PLUGIN_ROOT}}/{target} does not exist in the plugin")
+    if SKILL_DIR_WALK.search(text):
+        fail(problems, f"{where}: use ${{CLAUDE_PLUGIN_ROOT}}/..., not ${{CLAUDE_SKILL_DIR}}/.. (a path walk breaks if the skill moves)")
+    for match in BARE_PLUGIN_PATH.finditer(text):
+        before = text[max(0, match.start() - len(PLUGIN_ROOT)) : match.start()]
+        if before != PLUGIN_ROOT:
+            line = text.count("\n", 0, match.start()) + 1
+            fail(problems, f"{where}:{line}: {match.group(0)!r} is a bare path; an installed plugin is not in the project, write ${{CLAUDE_PLUGIN_ROOT}}/{match.group(0)}")
 
 
 def check_scripts(problems, directory):
@@ -60,6 +81,7 @@ def check_plugin(problems, entry):
             fail(problems, f"{entry['name']}: {required} is missing")
     for skill in sorted(directory.glob("skills/*/SKILL.md")):
         check_skill(problems, entry["name"], skill)
+        check_skill_paths(problems, skill, directory)
     hooks = directory / "hooks" / "hooks.json"
     if hooks.exists():
         json.loads(hooks.read_text(encoding="utf-8"))

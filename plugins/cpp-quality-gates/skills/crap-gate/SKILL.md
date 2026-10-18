@@ -18,11 +18,11 @@ Worked example, from the bundled sample (`tests/sample`, GCC 16.2): `weekday` is
 ## Run it
 
 ```sh
-scripts/coverage.sh                      # build with coverage, run tests, gcovr report, score, exit 1 on offenders
-python3 scripts/crap.py build/coverage/cov.json src --top 20   # re-score an existing report
+"${CLAUDE_PLUGIN_ROOT}/scripts/coverage.sh"                      # build with coverage, run tests, gcovr report, score, exit 1 on offenders
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/crap.py" build/coverage/cov.json src --top 20   # re-score an existing report
 ```
 
-Settings come from `.claude/cpp-quality-gates.json` (template: `templates/cpp-quality-gates.json`); the preset comes from `templates/CMakePresets.quality-gates.json`. Output, worst first:
+Settings come from `.claude/cpp-quality-gates.json` (template: `${CLAUDE_PLUGIN_ROOT}/templates/cpp-quality-gates.json`); the preset comes from `${CLAUDE_PLUGIN_ROOT}/templates/CMakePresets.quality-gates.json`. Output, worst first:
 
 ```
 CRAP   15.1  CC 15  cov  92%  src/calc.cpp:24  classify( int score , bool strict , int bonus)

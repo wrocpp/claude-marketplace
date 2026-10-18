@@ -18,11 +18,11 @@ All presets add `-fno-sanitize-recover=all` so the first finding aborts the test
 ## Use
 
 ```sh
-cp templates/CMakePresets.quality-gates.json .      # or "include" it from your CMakePresets.json
+cp "${CLAUDE_PLUGIN_ROOT}/templates/CMakePresets.quality-gates.json" .      # or "include" it from your CMakePresets.json
 CXX=g++-16 cmake --preset asan && cmake --build --preset asan && ctest --preset asan
 ```
 
-The presets take the compiler from `CXX`; none is hard-coded. `templates/github-actions.yml` runs the same on CI.
+The presets take the compiler from `CXX`; none is hard-coded. `${CLAUDE_PLUGIN_ROOT}/templates/github-actions.yml` runs the same on CI.
 
 ## What works where (measured with the bundled planted bugs, `tests/run.sh`)
 
@@ -32,7 +32,7 @@ The presets take the compiler from `CXX`; none is hard-coded. `templates/github-
 | macOS arm64, Apple clang 21.0.0 | works | aborts: "detect_leaks is not supported" | works |
 | Debian, GCC 16.2.0 (`gcc:16`, aarch64) | works | works | needs `--security-opt seccomp=unconfined` |
 
-So a macOS developer gets leak and GCC-TSan checks only on Linux: `scripts/linux-container.sh PRESET` runs a preset in a container (sets `seccomp=unconfined` for `tsan*` presets). CI does the same, so a green Mac proves less than a green Linux job.
+So a macOS developer gets leak and GCC-TSan checks only on Linux: `${CLAUDE_PLUGIN_ROOT}/scripts/linux-container.sh PRESET` runs a preset in a container (sets `seccomp=unconfined` for `tsan*` presets). CI does the same, so a green Mac proves less than a green Linux job.
 
 ## Rules
 
