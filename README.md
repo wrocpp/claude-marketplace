@@ -54,7 +54,7 @@ What the evidence does not cover, so you can judge how far to trust a rule:
   reproduced" instead of asserting it. `cpp-modules` lists `optional`/`expected` of a module type,
   `-Wfree-nonheap-object` and the `__mbstate_t` conflict that way.
 - **Optional checks that skip.** The mp-units fixtures need a clone (`WROCPP_NETWORK=1`) and the AFL++
-  campaign needs AFL++; both skip when absent and are failures in CI only if installed there.
+  campaign needs AFL++; both skip when absent, including in CI, so those paths are not exercised there.
 - **Scanners read text, not compiler state.** A hook can flag code the project's compiler accepts.
 - **`tidy-agent`** is pre-release (`0.1.0-dev`).
 
