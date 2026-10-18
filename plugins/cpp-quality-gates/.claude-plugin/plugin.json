@@ -1,7 +1,7 @@
 {
   "name": "cpp-quality-gates",
   "version": "0.1.0",
-  "description": "Make 'done' mean measured: a sanitizer matrix, a CRAP gate, mutation testing, coverage, compile-time undefined-behaviour checks and compiler capability tests, as skills with runnable scripts and CMake and CI templates.",
+  "description": "Make 'done' mean measured for C++: skills for a sanitizer matrix (ASan, UBSan, TSan, LSan; Linux-in-a-container for macOS), a CRAP gate (lizard + gcovr), mutation testing (universalmutator harness with triage), and a compiler capability matrix, with runnable scripts, CMake presets and CI templates.",
   "author": {
     "name": "Wro.cpp",
     "url": "https://wrocpp.github.io"
@@ -12,9 +12,14 @@
   "keywords": [
     "cpp",
     "sanitizers",
+    "asan",
+    "tsan",
+    "ubsan",
     "coverage",
     "mutation-testing",
     "crap",
+    "cyclomatic-complexity",
+    "capability-tests",
     "ci",
     "cmake"
   ]
