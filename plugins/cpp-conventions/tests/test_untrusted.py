@@ -14,6 +14,7 @@ PLUGIN = HERE.parent
 HOOK = PLUGIN / "hooks" / "pre_write_scan.py"
 CPPREFERENCE = PLUGIN / "skills" / "cppreference" / "scripts" / "cppreference.py"
 sys.path.insert(0, str(PLUGIN / "scripts"))
+sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(CPPREFERENCE.parent))
 
 import cppreference  # noqa: E402
@@ -152,6 +153,22 @@ class Helpers(unittest.TestCase):
         self.assertNotIn("\x1b", shown)
 
 
+class CommandArguments(unittest.TestCase):
+    def test_compiler_list_ignores_leading_dash_entries(self):
+        import check_fixtures
+
+        with mock.patch.dict(os.environ, {"WROCPP_COMPILERS": "-x --version /nonexistent/clang++ ../up"}):
+            self.assertEqual(check_fixtures.discover(), [])
+
+    def test_leading_dash_mp_units_dir_is_refused(self):
+        runner = PLUGIN / "tests" / "optional" / "run.sh"
+        result = subprocess.run(["sh", str(runner)], capture_output=True, text=True, timeout=TIMEOUT_SECONDS,
+                                env={**os.environ, "MP_UNITS_DIR": "-Ievil", "WROCPP_NETWORK": "0"})
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("SKIP", result.stdout)
+        self.assertNotIn("evil", result.stdout + result.stderr)
+
+
 class CppreferenceInputs(unittest.TestCase):
     def setUp(self):
         self.cache = pathlib.Path(tempfile.mkdtemp())
@@ -216,12 +233,91 @@ class CppreferenceInputs(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertNotIn("\x1b", result.stdout)
         self.assertNotIn("\x00", result.stdout)
-        self.assertNotIn("evil", result.stdout.split("quoted data")[0])
+        self.assertNotIn("evil", result.stdout.split(cppreference.QUOTE_HEADING)[0])
         self.assertNotIn("curl_https", result.stdout)
+        self.assertIn(cppreference.QUOTE_HEADING, result.stdout)
+        self.assertLess(result.stdout.index(cppreference.QUOTE_HEADING), result.stdout.index("cite:"))
         for line in result.stdout.splitlines():
-            if line.strip().startswith("quoted data:"):
-                self.assertLessEqual(len(line.strip()), len('quoted data: ""') + cppreference.EXCERPT_CHARS)
+            if line.startswith('  "'):
+                self.assertLessEqual(len(line), len('  ""') + cppreference.EXCERPT_CHARS)
         self.assertIn("sections: Notes", result.stdout)
+
+    def test_total_output_is_capped(self):
+        paragraphs = "".join(f"<p>match {i} " + "w" * 300 + "</p>" for i in range(60))
+        (self.cache / "cpp__container__span.html").write_text("<h2><span class='mw-headline' id='Notes'>Notes</span></h2>" + paragraphs, encoding="utf-8")
+        result = self.cli("lookup", "cpp/container/span", "--grep", "match", "--max-matches", "999")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertLessEqual(len(result.stdout), cppreference.MAX_OUTPUT_CHARS + len("\n[output truncated]\n"))
+        self.assertIn("[output truncated]", result.stdout)
+
+    def test_pasted_url_never_changes_the_host(self):
+        for pasted in ("https://evil.example/w/cpp/x", "https://evil.example/cpp/container/span", "//evil.example/cpp/container/span"):
+            self.assertIsNone(cppreference.normalise_path(pasted))
+        requested = []
+
+        class Response:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *exc):
+                return False
+
+            def geturl(self):
+                return requested[-1]
+
+            def read(self, limit):
+                return b"<p>ok</p>"
+
+        def stub(request, timeout):
+            requested.append(request.full_url)
+            return Response()
+
+        path = cppreference.normalise_path("https://en.cppreference.com/w/cpp/container/span")
+        with mock.patch.dict(os.environ, {"WROCPP_CACHE_DIR": str(self.cache)}), mock.patch("urllib.request.urlopen", stub):
+            body, _ = cppreference.load(path, False, False)
+        self.assertEqual(requested, ["https://en.cppreference.com/cpp/container/span"])
+        self.assertIsNotNone(body)
+
+    def test_download_is_size_capped(self):
+        seen = []
+
+        class Response:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *exc):
+                return False
+
+            def geturl(self):
+                return "https://en.cppreference.com/cpp/container/span"
+
+            def read(self, limit):
+                seen.append(limit)
+                return b"x" * min(limit, 3 * 1024 * 1024)
+
+        with mock.patch.dict(os.environ, {"WROCPP_CACHE_DIR": str(self.cache)}), mock.patch("urllib.request.urlopen", return_value=Response()):
+            body, origin = cppreference.load("cpp/container/span", False, False)
+        self.assertIsNone(body)
+        self.assertEqual(seen, [cppreference.MAX_PAGE_BYTES + 1])
+        self.assertEqual(list(self.cache.iterdir()), [])
+
+    def test_oversized_cached_page_is_refused(self):
+        (self.cache / "cpp__container__span.html").write_bytes(b"x" * (cppreference.MAX_PAGE_BYTES + 1))
+        self.assertEqual(self.cli("lookup", "cpp/container/span", "--offline").returncode, 2)
+
+    def test_grep_is_length_capped_and_time_boxed(self):
+        (self.cache / "cpp__container__span.html").write_text("<p>" + "a" * 1500 + "!</p>", encoding="utf-8")
+        self.assertEqual(self.cli("lookup", "cpp/container/span", "--grep", "a" * (cppreference.MAX_PATTERN_CHARS + 1)).returncode, 2)
+        page = cppreference.Page()
+        page.feed("<p>" + "a" * 1500 + "!</p>")
+        with mock.patch.object(cppreference, "GREP_SECONDS", 1):
+            if hasattr(cppreference.signal, "SIGALRM"):
+                with self.assertRaises(cppreference.SearchTimeout):
+                    cppreference.select(page, "(a+)+$", None, 5)
+
+    def test_section_argument_is_capped(self):
+        (self.cache / "cpp__container__span.html").write_text("<h2><span class='mw-headline' id='Notes'>Notes</span></h2><p>x</p>", encoding="utf-8")
+        self.assertEqual(self.cli("lookup", "cpp/container/span", "--section", "N" * 5000).returncode, 1)
 
     def test_invalid_grep_pattern_is_a_clean_error(self):
         (self.cache / "cpp__container__span.html").write_text("<p>x</p>", encoding="utf-8")

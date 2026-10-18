@@ -15,6 +15,7 @@ if [ -z "$root" ] && [ "${WROCPP_NETWORK:-0}" = 1 ]; then
     fi
     root=$cache
 fi
+case $root in -*) root= ;; esac
 if [ -z "$root" ] || [ ! -d "$root/src/core/include" ]; then
     echo "SKIP mp-units fixtures (set MP_UNITS_DIR to a v2.x checkout, or WROCPP_NETWORK=1 to clone $tag)"
     exit 0

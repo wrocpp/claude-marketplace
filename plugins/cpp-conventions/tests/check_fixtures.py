@@ -87,7 +87,7 @@ def discover():
         candidates = [shutil.which(name) or "" for name in PATH_CANDIDATES] + sorted(glob.glob(BREW_LLVM_GLOB))
     found = {}
     for candidate in candidates:
-        if not candidate:
+        if not candidate or candidate.startswith("-") or ".." in pathlib.PurePath(candidate).parts:
             continue
         compiler = probe(candidate)
         if compiler is not None:
