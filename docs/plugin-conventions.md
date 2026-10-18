@@ -27,7 +27,7 @@ plugins/<name>/
 Every plugin README has the line that installs it from this marketplace, because the plugin is also read on its own:
 
 ```
-/plugin install <name> --marketplace wrocpp/claude-marketplace
+claude plugin marketplace add wrocpp/claude-marketplace && claude plugin install <name>@wrocpp
 ```
 
 ## Skills

@@ -2,7 +2,7 @@
 
 Make "done" mean measured for C++ projects. Four skills tell Claude when and how to run each gate; the scripts and templates they point to run on their own, without Claude.
 
-Install: `/plugin install cpp-quality-gates --marketplace wrocpp/claude-marketplace`
+Install: `claude plugin marketplace add wrocpp/claude-marketplace && claude plugin install cpp-quality-gates@wrocpp`
 
 ## Skills
 

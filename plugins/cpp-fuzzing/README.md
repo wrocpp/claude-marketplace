@@ -8,7 +8,7 @@ bug the fuzzer once found, or a small input nobody tried, becomes a build error.
 ## Install
 
 ```
-/plugin install cpp-fuzzing --marketplace wrocpp/claude-marketplace
+claude plugin marketplace add wrocpp/claude-marketplace && claude plugin install cpp-fuzzing@wrocpp
 ```
 
 ## Skills

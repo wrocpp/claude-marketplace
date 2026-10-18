@@ -2,7 +2,7 @@
 
 Evidence-backed C++ conventions as skills, plus an advisory scanner that looks at the C++ text Claude is about to write. Every rule that depends on a compiler is backed by a fixture compiled with GCC and Clang, and the results are in the skill.
 
-Install: `/plugin install cpp-conventions --marketplace wrocpp/claude-marketplace`
+Install: `claude plugin marketplace add wrocpp/claude-marketplace && claude plugin install cpp-conventions@wrocpp`
 
 ## What you get
 

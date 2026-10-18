@@ -4,7 +4,7 @@ Use `import std` and named C++ modules with CMake and GCC 16 without losing hour
 skills, a template project and a fixture for every trap, rebuilt by the tests so a compiler or CMake
 update shows up as a failure.
 
-Install: `/plugin install cpp-modules --marketplace wrocpp/claude-marketplace`
+Install: `claude plugin marketplace add wrocpp/claude-marketplace && claude plugin install cpp-modules@wrocpp`
 
 ## Skills
 

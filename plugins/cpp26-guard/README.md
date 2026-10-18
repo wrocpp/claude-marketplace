@@ -2,7 +2,7 @@
 
 Keep C++26 code free of hand-written copies of definitions, and push Claude toward C++26 idioms. Reflection instead of enum-to-string switches, name tables, flag chains and key/member blocks; concepts instead of bare template parameters; `import std`, `std::format` and `std::print`; an opt-in comment policy. Two skills, a pre-write and a post-write advisory hook, two tested lints with allowance files, and a GCC 16.2 evidence table backed by compile probes.
 
-Install: `/plugin install cpp26-guard --marketplace wrocpp/claude-marketplace`
+Install: `claude plugin marketplace add wrocpp/claude-marketplace && claude plugin install cpp26-guard@wrocpp`
 
 ## What it does
 
