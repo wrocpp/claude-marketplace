@@ -7,6 +7,8 @@ here=$(cd "$(dirname "$0")" && pwd)
 export PYTHONDONTWRITEBYTECODE=1
 echo "== scanner, cppreference helper and hook probes"
 python3 "$here/test_scripts.py"
+echo "== untrusted input (hook output and helper arguments)"
+python3 "$here/test_untrusted.py"
 echo "== compiler fixtures"
 python3 "$here/check_fixtures.py"
 echo "== optional mp-units fixtures"
