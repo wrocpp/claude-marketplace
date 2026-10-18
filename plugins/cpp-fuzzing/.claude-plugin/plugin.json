@@ -1,7 +1,7 @@
 {
   "name": "cpp-fuzzing",
   "version": "0.1.0",
-  "description": "Property-based and fuzz testing recipes for C++: one property function reused by AFL++ harnesses, corpus replay at compile time with #embed, bounded-exhaustive constexpr checks and compile-time undefined-behaviour detection.",
+  "description": "One property function reused by every kind of C++ check, as three skills and a working starter: one-property-many-checks (unit tests, AFL++ and compile-time undefined-behaviour checks share one constexpr property), compile-time-corpus-and-exhaustive (#embed corpus replay and bounded-exhaustive static_asserts with budget and memory guidance), afl-harness (replay-and-AFL++ harness, Docker recipe, time-boxed campaign, crash triage).",
   "author": {
     "name": "Wro.cpp",
     "url": "https://wrocpp.github.io"
@@ -11,10 +11,14 @@
   "license": "MIT",
   "keywords": [
     "cpp",
+    "cpp26",
     "fuzzing",
     "afl",
+    "aflplusplus",
     "property-testing",
     "constexpr",
-    "ub"
+    "embed",
+    "undefined-behavior",
+    "cmake"
   ]
 }
