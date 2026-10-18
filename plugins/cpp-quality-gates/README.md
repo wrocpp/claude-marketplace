@@ -44,14 +44,17 @@ tests/run.sh, tests/setup.sh, tests/sample/   end-to-end test on a tiny project
 
 `.claude/cpp-quality-gates.json` (template in `templates/`) holds the roots to score, the CRAP limit, the coverage preset and gcov binary, and for the mutation harness the build directory, target names and test names. Every script also takes the same values as options; options win.
 
-## Untrusted project input
+## Untrusted project input and trust model
 
-The config, the triage file and the code under test belong to the project, so the scripts treat them as data:
+`.claude/cpp-quality-gates.json`, the triage file and the code under test belong to whichever repository is open, so the scripts treat them as untrusted:
 
-- Each config value is checked by type (relative path of `[A-Za-z0-9_./-]`, at most 128 characters, no `..`; a simple token; a number). A value that fails is ignored, the default applies, and stderr names only the setting, for example `ignored an invalid config value (crap.roots)`; the value is never quoted.
-- The config cannot make a script run a command. The harness runs fixed commands built from validated names (`cmake --build DIR --target T`, `ctest --test-dir DIR -R ^(names)$`). `mutation.build` and `mutation.test` in a config are not run; the script says so by key name. `--build` and `--test` exist only on the command line you or Claude type, where they are visible.
-- Output quotes project text only where it must (a surviving mutant's changed line): control characters are stripped, it is cut to 120 characters and a heading says it is quoted data. Function names print as identifiers only.
-- `tests/run.sh` feeds a config and a source file full of instruction-shaped text and fails if any of it reaches the output or a config command runs.
+- **No shell.** Nothing is run with `shell=True`. A configured or command-line command (`mutation.build`, `mutation.test`, `--build`, `--test`) is split with `shlex.split` into an argument list (`qg_config.split_command`, `scripts/qg_config.py`) and refused if it contains `; | & $ ` < > ( )`, a backslash or a newline. The shell scripts quote every variable and pass lists with `set --`.
+- **Validation, then refusal.** A value that reaches a command line or path must be a token (`[A-Za-z0-9_.+-]`, at most 64), a relative path (`[A-Za-z0-9_./-]`, at most 128, no `..`, no leading `/`) or an integer in range. An invalid value stops the script with exit 2 and a message that names the setting (`invalid value for coverage.preset`), never the value.
+- **Fixed commands preferred.** `mutation.build_dir` with `mutation.targets` and `mutation.tests` runs `cmake --build DIR --target T...` and `ctest --test-dir DIR -R ^(names)$`; no free-form command is involved.
+- **You see what runs.** `mutate.py` prints the exact argument lists it will run (`build:` and `test:` lines) and `--dry-run` prints them and stops.
+- **Still your privileges.** A build and test command executes the project's code with your privileges, exactly like the project's own build. Review `.claude/cpp-quality-gates.json` of an unfamiliar repository before running the gates.
+- **Output is data.** Function names print as identifiers only; a surviving mutant's source line is quoted with control characters stripped, cut to 120 characters, under a heading that says it is quoted data.
+- `tests/run.sh` refuses 24 hostile configs and options (metacharacters, `$(...)`, backticks, newlines, spaces, globs, `..`, absolute paths, text where a number belongs), checks that a marker file is never created, and that instruction-shaped text in a config or in source never reaches the output.
 
 ## Evidence
 

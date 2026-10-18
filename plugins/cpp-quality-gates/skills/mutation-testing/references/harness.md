@@ -2,9 +2,9 @@
 
 ## Command line
 
-`mutate.py SOURCE [--build CMD] [--test CMD] [--changed-lines BASE_REF | --lines 10-20,31] [--sample N] [--seed S] [--triage FILE] [--ignore FILE] [--new-tests N] [--compile-time-marker TEXT] [--build-timeout S] [--test-timeout S] [--config FILE]`
+`mutate.py SOURCE [--build CMD] [--test CMD] [--dry-run] [--changed-lines BASE_REF | --lines 10-20,31] [--sample N] [--seed S] [--triage FILE] [--ignore FILE] [--new-tests N] [--compile-time-marker TEXT] [--build-timeout S] [--test-timeout S] [--config FILE]`
 
-- Run from the project root. `--build` and `--test` are shell commands from your command line (a project file never supplies one; see README, "Untrusted project input"); the source file is overwritten per mutant and restored afterwards, also on Ctrl-C or SIGTERM. Do not edit the file while it runs.
+- Run from the project root. `--build` and `--test` are split into argument lists and run without a shell (metacharacters are refused; see README, "Untrusted project input"); `--dry-run` prints them and stops; the source file is overwritten per mutant and restored afterwards, also on Ctrl-C or SIGTERM. Do not edit the file while it runs.
 - `--sample 0` runs every mutant (default 200). The sample is drawn with `random.Random(seed)` over the generated list.
 - `--changed-lines` runs `git diff -U0 BASE_REF -- SOURCE` and mutates only added or changed lines.
 - Exit 0 after reporting; 1 only for the harness failing (unmutated tree does not build or pass, universalmutator missing, bad triage kind).
