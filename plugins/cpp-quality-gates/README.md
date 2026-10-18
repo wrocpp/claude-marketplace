@@ -16,6 +16,7 @@ Install: `/plugin install cpp-quality-gates --marketplace wrocpp/claude-marketpl
 ## Requirements
 
 - A C++ compiler: GCC 16 is what the tests were run with; Apple clang and Homebrew clang also pass the sanitizer and capability steps. CRAP and mutation use GCC (coverage is gcov).
+- On Debian and Ubuntu, clang needs `libclang-rt-dev` for the sanitizer steps: with `clang` alone even CMake's compiler check fails ("is not able to compile a simple test program"). `tests/setup.sh` installs it.
 - CMake 3.23+ (presets with `include`), Ninja, Python 3.9+.
 - `pip install lizard gcovr universalmutator` (gcovr 8+). `tests/setup.sh` installs them into a venv in `${XDG_CACHE_HOME:-~/.cache}/wrocpp/cpp-quality-gates-venv` (override with `QG_VENV`); `scripts/mutate.sh` makes its own venv for universalmutator.
 - Docker for the Linux-container route (optional).
