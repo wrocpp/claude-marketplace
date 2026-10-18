@@ -41,6 +41,14 @@ Inside a session the same thing is `/plugin marketplace add wrocpp/claude-market
 - **Cheap to load.** Skills use progressive disclosure: a short `SKILL.md` and `references/` read on
   demand. `claude plugin details <name>` shows each plugin's projected token cost.
 
+## Trust model
+
+The plugins read the repository you are working in, and a repository is not trusted by default. Their
+hooks never block an edit, validate every value they take from a project file before it reaches a
+command line or Claude's context, and quote what they show. Review a project's `.claude/*.json` before
+using the gates in a repository you do not know. Details and how to report a problem:
+[SECURITY.md](SECURITY.md).
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) and [docs/plugin-conventions.md](docs/plugin-conventions.md).
