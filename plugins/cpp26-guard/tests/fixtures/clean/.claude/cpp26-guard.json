@@ -1,0 +1,6 @@
+{
+  "roots": ["src"],
+  "modules": true,
+  "rules": {"comment": true},
+  "helpers": {"enum_name": "reflect::enum_name"}
+}

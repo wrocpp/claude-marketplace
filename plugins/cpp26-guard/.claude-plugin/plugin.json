@@ -1,7 +1,7 @@
 {
   "name": "cpp26-guard",
   "version": "0.1.0",
-  "description": "Keep C++26 code free of hand-written copies of definitions: reflection instead of enum-to-string switches, name tables, flag chains and key/member blocks, with concepts, import std, format and print and a comment policy. Skills, a pre-write advisory hook and tested lints with allowance files.",
+  "description": "Keep C++26 free of hand-written copies of definitions. Skills reflect-dont-hand-write (derive enum names, name lookups, flag parsing and member lists with std::meta reflection, with a tested reference header and a GCC 16.2 evidence table) and cpp26-idioms (constrained templates, import std, std::format and std::print, one append instead of a chain, opt-in comment policy), advisory pre-write and post-write hooks, two tested lints with allowance files, configured by .claude/cpp26-guard.json.",
   "author": {
     "name": "Wro.cpp",
     "url": "https://wrocpp.github.io"
@@ -13,8 +13,10 @@
     "cpp",
     "cpp26",
     "reflection",
+    "std-meta",
     "concepts",
     "modules",
+    "gcc-16",
     "lint",
     "hooks"
   ]
