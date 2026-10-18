@@ -41,6 +41,23 @@ Inside a session the same thing is `/plugin marketplace add wrocpp/claude-market
 - **Cheap to load.** Skills use progressive disclosure: a short `SKILL.md` and `references/` read on
   demand. `claude plugin details <name>` shows each plugin's projected token cost.
 
+## Limits
+
+What the evidence does not cover, so you can judge how far to trust a rule:
+
+- **Compilers.** Fixtures are measured on GCC 16.2 and on Apple clang 21 and Homebrew clang 21-23
+  where a plugin says so. Older GCC and clang 17 or earlier are not measured; a rule may differ there.
+- **CMake.** `cpp-modules` records the `import std` gate for CMake 3.30.9 to 4.4.4. Patch releases it
+  could not install (for example 3.31.7 to 3.31.9, 4.0.1, 4.0.2) may use another gate.
+- **Sanitizers.** ASan, UBSan, LSan and TSan are run; MSan is not.
+- **Not reproduced.** Where a plugin could not reproduce a reported trap, its skill says "not
+  reproduced" instead of asserting it. `cpp-modules` lists `optional`/`expected` of a module type,
+  `-Wfree-nonheap-object` and the `__mbstate_t` conflict that way.
+- **Optional checks that skip.** The mp-units fixtures need a clone (`WROCPP_NETWORK=1`) and the AFL++
+  campaign needs AFL++; both skip when absent and are failures in CI only if installed there.
+- **Scanners read text, not compiler state.** A hook can flag code the project's compiler accepts.
+- **`tidy-agent`** is pre-release (`0.1.0-dev`).
+
 ## Trust model
 
 The plugins read the repository you are working in, and a repository is not trusted by default. Their
