@@ -25,8 +25,14 @@ import urllib.request
 BASE_URL = "https://en.cppreference.com/"
 USER_AGENT = "wrocpp-cpp-conventions/0.1 (+https://github.com/wrocpp/claude-marketplace)"
 FETCH_TIMEOUT_SECONDS = 20
-EXCERPT_CHARS = 280
+EXCERPT_CHARS = 120
+ALLOWED_HOSTS = ('en.cppreference.com',)
+SEGMENT = re.compile(r"[A-Za-z0-9_+:-][A-Za-z0-9_.+:-]*")
+SECTION_ID = re.compile(r"[A-Za-z0-9_.:-]{1,64}")
+MAX_ARGUMENT_CHARS = 200
 DEFAULT_MAX_MATCHES = 6
+MAX_MATCHES_CAP = 25
+MAX_PAGE_BYTES = 8 * 1024 * 1024
 HEADING_TAGS = {"h1", "h2", "h3", "h4", "h5"}
 TEXT_TAGS = {"p", "li", "tr", "pre", "dd", "dt"}
 SKIPPED_TAGS = {"script", "style", "nav", "head"}
@@ -118,6 +124,8 @@ class Page(html.parser.HTMLParser):
             self._buffer = None
 
     def _add_anchor(self, anchor, title):
+        if not SECTION_ID.fullmatch(anchor):
+            return
         self._current = anchor
         if not any(known["id"] == anchor for known in self.sections):
             self.sections.append({"id": anchor, "title": title})
@@ -140,25 +148,42 @@ def cache_dir():
 
 
 def normalise_path(topic):
+    """Turn a topic word, path or URL into a cppreference page path, or None when it is not acceptable."""
+    if not topic or topic.startswith("-") or len(topic) > MAX_ARGUMENT_CHARS or any(not c.isprintable() for c in topic):
+        return None
     key = " ".join(topic.lower().replace("_", " ").split())
     for name, path in TOPICS.items():
         if key == " ".join(name.lower().replace("_", " ").split()):
             return path
     parsed = urllib.parse.urlparse(topic)
-    path = parsed.path if parsed.scheme else topic
-    path = path.strip("/")
+    if parsed.scheme:
+        if parsed.scheme != "https" or parsed.hostname not in ALLOWED_HOSTS or parsed.username or parsed.password:
+            return None
+        path = parsed.path
+    else:
+        path = topic
+    path = re.sub(r"\.html$", "", path.strip("/"))
     if path.startswith("w/"):
         path = path[2:]
-    path = re.sub(r"\.html$", "", path)
-    return path if re.fullmatch(r"(?:cpp|c)(?:/[\w.+:-]+)+", path) else None
+    parts = path.split("/")
+    if len(parts) < 2 or parts[0] not in ("cpp", "c") or not all(SEGMENT.fullmatch(p) and p not in (".", "..") and ".." not in p for p in parts):
+        return None
+    return path
 
 
 def cache_file(path):
-    return cache_dir() / (path.replace("/", "__") + ".html")
+    directory = cache_dir().resolve()
+    target = (directory / (path.replace("/", "__") + ".html")).resolve()
+    if target.parent != directory:
+        raise ValueError("cache path escapes the cache directory")
+    return target
 
 
 def load(path, offline, refresh):
-    cached = cache_file(path)
+    try:
+        cached = cache_file(path)
+    except ValueError:
+        return None, "cache path rejected"
     if cached.is_file() and not refresh:
         return cached.read_text(encoding="utf-8", errors="replace"), "cache"
     if offline:
@@ -166,9 +191,13 @@ def load(path, offline, refresh):
     request = urllib.request.Request(BASE_URL + path, headers={"User-Agent": USER_AGENT})
     try:
         with urllib.request.urlopen(request, timeout=FETCH_TIMEOUT_SECONDS) as response:
-            body = response.read().decode("utf-8", errors="replace")
-    except (urllib.error.URLError, OSError, ValueError) as error:
-        return None, f"network: {error}"
+            if urllib.parse.urlparse(response.geturl()).hostname not in ALLOWED_HOSTS:
+                return None, "network: redirected to a host that is not allowed"
+            body = response.read(MAX_PAGE_BYTES + 1).decode("utf-8", errors="replace")
+    except (urllib.error.URLError, OSError, ValueError):
+        return None, "network: the request failed"
+    if len(body) > MAX_PAGE_BYTES:
+        return None, "network: the page is larger than expected"
     cached.parent.mkdir(parents=True, exist_ok=True)
     cached.write_text(body, encoding="utf-8")
     return body, "network"
@@ -195,6 +224,11 @@ def select(page, grep, section, limit):
     return blocks[:limit]
 
 
+def clean_excerpt(text):
+    flat = "".join(c if c.isprintable() else " " for c in text)
+    return " ".join(flat.split())[:EXCERPT_CHARS]
+
+
 def cmd_topics(args):
     word = (args.word or "").lower()
     for name, path in sorted(TOPICS.items()):
@@ -206,7 +240,7 @@ def cmd_topics(args):
 def cmd_lookup(args):
     path = normalise_path(args.topic)
     if path is None:
-        print(f"unknown topic {args.topic!r}: run `topics`, or pass a path such as cpp/container/span", file=sys.stderr)
+        print(f"unacceptable topic: run `topics`, or pass a path such as cpp/container/span (https://en.cppreference.com URLs are accepted, other hosts are not)", file=sys.stderr)
         return 2
     offline = args.offline or os.environ.get("WROCPP_OFFLINE") == "1"
     body, origin = load(path, offline, args.refresh)
@@ -220,15 +254,19 @@ def cmd_lookup(args):
         section = anchor_for(page, args.section)
         if section is None:
             known = ", ".join(s["id"] for s in page.sections) or "none"
-            print(f"no section {args.section!r} on {BASE_URL}{path}; sections: {known}", file=sys.stderr)
+            print(f"no section with that name on {BASE_URL}{path}; sections: {known}", file=sys.stderr)
             return 1
-    matches = select(page, args.grep, section, args.max_matches)
+    try:
+        matches = select(page, args.grep, section, max(1, min(args.max_matches, MAX_MATCHES_CAP)))
+    except re.error:
+        print("the --grep pattern is not a valid regular expression", file=sys.stderr)
+        return 2
     result = {
         "page": BASE_URL + path,
         "source": origin,
         "sections": page.sections,
         "matches": [
-            {"cite": f"{BASE_URL}{path}#{b['section']}" if b["section"] else BASE_URL + path, "section": b["section"], "text": b["text"][:EXCERPT_CHARS]}
+            {"cite": f"{BASE_URL}{path}#{b['section']}" if b["section"] else BASE_URL + path, "section": b["section"], "text": clean_excerpt(b["text"])}
             for b in matches
         ],
     }
@@ -238,7 +276,7 @@ def cmd_lookup(args):
         print(f"page: {result['page']} ({origin})")
         print("sections: " + ", ".join(s["id"] for s in page.sections))
         for match in result["matches"]:
-            print(f"cite: {match['cite']}\n  {match['text']}")
+            print(f'cite: {match["cite"]}\n  quoted data: "{match["text"]}"')
     return 0 if matches else 1
 
 
