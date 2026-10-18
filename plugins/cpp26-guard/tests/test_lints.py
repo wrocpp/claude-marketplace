@@ -89,7 +89,7 @@ class ConfigTest(unittest.TestCase):
 
     def test_an_unknown_helper_is_ignored_and_flagged(self):
         config = lint_common.parse_config({"helpers": {"nonsense": "x"}})
-        self.assertEqual((config.helpers, config.ignored), ((), True))
+        self.assertEqual((config.helpers, config.ignored), ((), ("helpers",)))
 
     def test_roots_exclude_and_suffixes_decide_what_is_covered(self):
         config = Config(roots=("lib",), exclude=("lib/gen/",))

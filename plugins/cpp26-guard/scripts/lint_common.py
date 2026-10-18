@@ -28,7 +28,7 @@ HELPER_NAME = re.compile(r"^[A-Za-z_][A-Za-z0-9_:<>]{0,63}\Z")
 SAFE_PATH = re.compile(r"^[A-Za-z0-9_./-]{1,128}\Z")
 DISPLAY_PATH = re.compile(r"^[A-Za-z0-9_./+-]{1,200}\Z")
 QUOTE_LIMIT = 120
-IGNORED_NOTICE = "A value in .claude/cpp26-guard.json was ignored because it is not a plain identifier or relative path; the default is used."
+IGNORED_KEYS = ("helpers", "allowance_file")
 
 
 def valid_relative_path(value):
@@ -53,7 +53,7 @@ class Config:
     allowance_file: str = DEFAULT_ALLOWANCE_FILE
     rules: tuple = ()
     helpers: tuple = ()
-    ignored: bool = False
+    ignored: tuple = ()
 
     def enabled(self, rule):
         explicit = dict(self.rules)
@@ -102,7 +102,7 @@ def parse_config(raw):
         allowance_file=allowance if allowance_ok else DEFAULT_ALLOWANCE_FILE,
         rules=tuple(sorted(rules.items())),
         helpers=helpers,
-        ignored=len(helpers) != len(declared) or not allowance_ok,
+        ignored=tuple(key for key, bad in (('helpers', len(helpers) != len(declared)), ('allowance_file', not allowance_ok)) if bad),
     )
 
 
@@ -229,3 +229,8 @@ def run_cli(name, summary, scan_paths, self_test, argv=None):
 
 def with_shown(findings, source):
     return [dataclasses.replace(f, shown=source.skeleton_line_text(f.line)) if f.line and not f.shown else f for f in findings]
+
+
+def ignored_notice(config):
+    keys = [key for key in config.ignored if key in IGNORED_KEYS]
+    return f"A config value was ignored ({', '.join(keys)}); the default is used." if keys else ""
