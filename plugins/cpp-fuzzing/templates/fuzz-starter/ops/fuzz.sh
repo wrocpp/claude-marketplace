@@ -7,13 +7,13 @@ target=${1:?usage: ops/fuzz.sh <target> [seconds]}
 seconds=${2:-60}
 bug=${3:-none}
 case $target in
-  '' | *[!a-z_]*) echo "fuzz.sh: target must be lowercase letters and underscores" >&2; exit 2 ;;
+  '' | [!a-z]* | *[!a-z_]*) echo "fuzz.sh: target must start with a lowercase letter and hold only lowercase letters and underscores" >&2; exit 2 ;;
 esac
 case $seconds in
   '' | *[!0-9]*) echo "fuzz.sh: seconds must be a number" >&2; exit 2 ;;
 esac
 case $bug in
-  '' | *[!a-z_]*) echo "fuzz.sh: planted bug must be lowercase letters and underscores" >&2; exit 2 ;;
+  '' | [!a-z]* | *[!a-z_]*) echo "fuzz.sh: planted bug must start with a lowercase letter and hold only lowercase letters and underscores" >&2; exit 2 ;;
 esac
 [ -f "$root/tests/harness_$target.cpp" ] || { echo "fuzz.sh: no tests/harness_$target.cpp" >&2; exit 2; }
 

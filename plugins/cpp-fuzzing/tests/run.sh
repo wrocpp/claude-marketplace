@@ -132,6 +132,26 @@ else
   fail "triage_crashes.py"; cat "$work/triage.log"
 fi
 
+# Argument hygiene: dash-leading or shell-shaped values are refused before docker is reached, and a
+# crash file name is never interpreted.
+canary=$work/canary
+: >"$canary"
+refused=1
+for bad in -x 'a;touch' '../x' 'A'; do
+  sh "$template/ops/fuzz.sh" "$bad" 1 >/dev/null 2>&1 && refused=0
+done
+sh "$template/ops/fuzz.sh" parse -5 >/dev/null 2>&1 && refused=0
+sh "$template/ops/fuzz.sh" parse 1 -x >/dev/null 2>&1 && refused=0
+mkdir -p "$work/hostile/default/crashes"
+printf 'z' >"$work/hostile/default/crashes/"'id:000000,$(touch pwned);touch pwned2;-rf'
+(cd "$work" && python3 -I "$template/ops/triage_crashes.py" "$work/hostile" "$work/hostile-corpus" >/dev/null 2>&1)
+[ -n "$(ls "$work/hostile-corpus" 2>/dev/null)" ] || refused=0
+if [ "$refused" = 1 ] && [ ! -e "$work/pwned" ] && [ ! -e "$work/pwned2" ] && [ -e "$canary" ]; then
+  pass "fuzz.sh refuses dash-leading and shell-shaped arguments; hostile crash names are inert"
+else
+  fail "argument hygiene"
+fi
+
 # AFL++ is optional.
 if command -v afl-fuzz >/dev/null 2>&1 && command -v afl-g++-fast >/dev/null 2>&1; then
   dir=$work/afl
