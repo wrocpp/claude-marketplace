@@ -33,9 +33,20 @@ export QG_CONFIG
 roots=$(cfg crap roots src paths)
 filters=$(cfg coverage filters "$(printf '%s' "$roots" | tr '\n' ' ')" paths)
 
+# The build directory must be a real directory strictly inside the project, symlinks resolved,
+# before anything is deleted from it. Paths go to tools as "./"-prefixed operands.
+project=$(pwd -P)
+inside_project() {
+  [ -d "./$1" ] || { echo "coverage.sh: the build directory does not exist" >&2; exit 2; }
+  real=$(cd "./$1" && pwd -P)
+  case $real in "$project"/*) ;; *) echo "coverage.sh: the build directory is not inside the project" >&2; exit 2 ;; esac
+}
+[ ! -e "./$bindir" ] || inside_project "$bindir"
+
 cmake --preset "$preset" >/dev/null
 cmake --build --preset "$preset"
-find "$bindir" -name '*.gcda' -delete
+inside_project "$bindir"
+find "./$bindir" -name '*.gcda' -type f -delete
 ctest --preset "$preset" --output-on-failure
 [ -n "$json" ] || json=$bindir/cov.json
 
@@ -46,5 +57,5 @@ done <<FILTERS
 $filters
 FILTERS
 # -r is the physical path: GCC records real paths, and /var/... on macOS is /private/var/...
-gcovr --gcov-executable "$gcov" -r "$(pwd -P)" "$@" --gcov-ignore-errors=no_working_dir_found --json "$json" "$bindir"
-[ "$gate" -eq 0 ] || exec python3 "$here/crap.py" "$json" --config "$config"
+gcovr --gcov-executable "$gcov" -r "$(pwd -P)" "$@" --gcov-ignore-errors=no_working_dir_found --json "./$json" "./$bindir"
+[ "$gate" -eq 0 ] || exec python3 "$here/crap.py" "./$json" --config "$config"

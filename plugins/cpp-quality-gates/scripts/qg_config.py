@@ -13,8 +13,9 @@ import shlex
 import sys
 
 CONFIG_PATH = pathlib.Path(".claude/cpp-quality-gates.json")
-PATH_PATTERN = re.compile(r"[A-Za-z0-9_./-]{1,128}")
-TOKEN_PATTERN = re.compile(r"[A-Za-z0-9_.+-]{1,64}")
+# The first character is never "-": a value that becomes an argument must not parse as an option.
+PATH_PATTERN = re.compile(r"[A-Za-z0-9_.][A-Za-z0-9_./-]{0,127}")
+TOKEN_PATTERN = re.compile(r"[A-Za-z0-9_.][A-Za-z0-9_.+-]{0,63}")
 SUFFIX_PATTERN = re.compile(r"\.[A-Za-z0-9]{1,8}")
 NAME_PATTERN = re.compile(r"[A-Za-z_][A-Za-z0-9_:<>]{0,63}")
 SHELL_METACHARACTERS = frozenset(";|&$`<>()\\\n\r")
@@ -113,6 +114,11 @@ def split_command(text, label):
 def get_command(section, key, path=None):
     value = lookup(section, key, path)
     return None if value is MISSING else split_command(value, f"{section}.{key}")
+
+
+def operand(path):
+    """A path for a tool's command line: never starts with "-", so it cannot be read as an option."""
+    return "./" + path if path.startswith("-") else path
 
 
 def quote(text):

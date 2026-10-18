@@ -101,9 +101,9 @@ def mutant_number(path):
 def generate(source, lines, ignore, scratch):
     directory = scratch / "mutants"
     directory.mkdir()
-    command = ["mutate", source.as_posix(), "cpp", "--noCheck", "--mutantDir", str(directory)]
+    command = ["mutate", qg_config.operand(source.as_posix()), "cpp", "--noCheck", "--mutantDir", str(directory)]
     if ignore.exists():
-        command += ["--ignore", str(ignore)]
+        command += ["--ignore", qg_config.operand(str(ignore))]
     if lines is not None:
         selection = scratch / "lines.txt"
         selection.write_text("".join(f"{number}\n" for number in lines))
@@ -174,8 +174,8 @@ def fixed_commands(arguments):
     tests = qg_config.get_list("mutation", "tests", None, "token", arguments.config)
     if not (directory and targets and tests):
         return None, None
-    build = ["cmake", "--build", directory, "--target", *targets]
-    test = ["ctest", "--test-dir", directory, "--output-on-failure", "-R", "^(" + "|".join(re.escape(name) for name in tests) + ")$"]
+    build = ["cmake", "--build", "./" + directory, "--target", *targets]
+    test = ["ctest", "--test-dir", "./" + directory, "--output-on-failure", "-R", "^(" + "|".join(re.escape(name) for name in tests) + ")$"]
     return build, test
 
 

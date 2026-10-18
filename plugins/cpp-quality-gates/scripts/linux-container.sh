@@ -13,8 +13,8 @@ set -eu
 preset=$1
 shift
 image=${IMAGE:-gcc:latest}
-case $preset in *[!A-Za-z0-9_.+-]*) echo "linux-container.sh: invalid preset name" >&2; exit 2 ;; esac
-case $image in *[!A-Za-z0-9_.:/@-]*) echo "linux-container.sh: invalid IMAGE" >&2; exit 2 ;; esac
+case $preset in -* | *[!A-Za-z0-9_.+-]*) echo "linux-container.sh: invalid preset name" >&2; exit 2 ;; esac
+case $image in -* | *[!A-Za-z0-9_.:/@-]*) echo "linux-container.sh: invalid IMAGE" >&2; exit 2 ;; esac
 case $preset in
   *tsan*) security=seccomp=unconfined ;;
   *) security=no-new-privileges=false ;;
