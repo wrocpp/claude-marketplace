@@ -18,7 +18,7 @@ Both hooks are advisory: they print `additionalContext`, always exit 0 and swall
 
 ## Requirements
 
-- Claude Code with plugin support; `python3` 3.9 or newer (standard library only); macOS or Linux.
+- Claude Code with plugin support; `python3` (standard library only; tested on 3.13 and 3.14); macOS or Linux.
 - To use the reference header or the probes: GCC 16.2 or newer with `-std=c++26 -freflection`. The lints and hooks need no compiler.
 
 ## Rules
