@@ -1,7 +1,7 @@
 {
   "name": "cpp-conventions",
   "version": "0.1.0",
-  "description": "Evidence-backed C++ conventions: designated initialisers, no needless copies, cppreference lookup, quantities as types and no magic numbers, each rule with compiler fixtures and an advisory pre-write scanner.",
+  "description": "Evidence-backed C++ conventions as five skills - designated-init (one braced expression per value), no-needless-copies (views, sinks, ownership boundaries), cppreference (confirm a rule and cite the page, cached offline), units (std::chrono and mp-units quantities, one wall clock) and no-magic-numbers (name every number once) - with compiler fixtures for GCC and Clang and an advisory pre-write hook that scans new C++ text for copy smells and bare numbers.",
   "author": {
     "name": "Wro.cpp",
     "url": "https://wrocpp.github.io"
@@ -11,11 +11,17 @@
   "license": "MIT",
   "keywords": [
     "cpp",
+    "cpp20",
+    "cpp23",
     "designated-initializers",
     "string_view",
     "span",
+    "copy-elision",
     "units",
+    "mp-units",
+    "chrono",
     "cppreference",
-    "magic-numbers"
+    "magic-numbers",
+    "hook"
   ]
 }
