@@ -1,0 +1,88 @@
+# Quality gates for a CMake C++ project. Copy to .github/workflows/quality-gates.yml and adjust
+# the roots in .claude/cpp-quality-gates.json. Presets come from templates/CMakePresets.quality-gates.json.
+name: quality-gates
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "17 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-gates-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  SETUP: >-
+    apt-get update -qq &&
+    apt-get install -y -qq --no-install-recommends ninja-build python3-pip python3-venv git ca-certificates &&
+    pip install -q --break-system-packages cmake lizard gcovr universalmutator
+
+jobs:
+  sanitizers:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        preset: [asan, tsan]
+    container:
+      image: gcc:16
+      # TSan needs personality(ADDR_NO_RANDOMIZE), which the default seccomp profile blocks.
+      options: --security-opt seccomp=unconfined --cap-add SYS_PTRACE
+    steps:
+      - uses: actions/checkout@v4
+      - run: eval "$SETUP"
+      - run: cmake --preset ${{ matrix.preset }}
+      - run: cmake --build --preset ${{ matrix.preset }}
+      - run: ctest --preset ${{ matrix.preset }}
+
+  crap:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    container: gcc:16
+    steps:
+      - uses: actions/checkout@v4
+      - run: eval "$SETUP"
+      - run: scripts/coverage.sh   # path of the plugin's scripts/ in your repo; exits 1 above CRAP 8
+
+  capabilities-newest-gcc:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    container: gcc:latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: eval "$SETUP"
+      - run: cmake --preset asan
+      - run: ctest --preset asan -L capability   # a compiler release that adds or drops a feature shows up here
+
+  mutation:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    continue-on-error: true   # advisory: the numbers are a list of questions, not a gate
+    container: gcc:16
+    steps:
+      - uses: actions/checkout@v4
+      - run: eval "$SETUP"
+      - run: |
+          cmake -S . -B build/mutate -G Ninja
+          for file in $MUTATE_FILES; do
+            scripts/mutate.py "$file" --sample 150 | tee -a mutation.log
+          done
+          grep '^Mutation:' mutation.log >> "$GITHUB_STEP_SUMMARY"
+        env:
+          MUTATE_FILES: src/example.cpp
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mutation-log
+          path: mutation.log

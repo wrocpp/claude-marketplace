@@ -1,0 +1,4 @@
+# key | kind | reason
+# key is <file>:<line>:<first 8 hex of the sha1 of the mutated line>, as printed on the SURVIVOR line
+# kind is equivalent (no observable behaviour changes) or arid (the mutated code is not product behaviour)
+# reason is one sentence a reviewer can check

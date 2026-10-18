@@ -1,0 +1,5 @@
+static_assert
+^\s*#\s*include
+^\s*import 
+^\s*export module
+^\s*module;
