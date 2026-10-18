@@ -1,3 +1,11 @@
 #!/bin/sh
+# Contract for CI: exit 0 when every test and fixture passes.
+# WROCPP_CI=1   a compiler that is not installed is a failure (otherwise `SKIP <compiler>`)
+# WROCPP_NETWORK=1  also fetch mp-units and run the optional fixtures against it
 set -eu
-echo "no tests yet"
+here=$(cd "$(dirname "$0")" && pwd)
+export PYTHONDONTWRITEBYTECODE=1
+echo "== compiler fixtures"
+python3 "$here/check_fixtures.py"
+echo "== optional mp-units fixtures"
+sh "$here/optional/run.sh"

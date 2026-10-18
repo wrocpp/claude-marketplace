@@ -1,0 +1,29 @@
+{
+  "mp_units_bare_number_to_quantity.cpp": {
+    "all": "reject",
+    "clang-19": "skip",
+    "note": "clang 19 cannot parse mp-units v2.5.0 (type constraint differs in template redeclaration), so it is skipped"
+  },
+  "mp_units_define_a_unit.cpp": {
+    "all": "accept",
+    "clang-19": "skip",
+    "clang-22": "reject",
+    "note": "clang 22.1.8 rejects `8 * kilotoken` against mp-units v2.5.0 (operator* constraint); 21 and 23 accept; clang 19 cannot parse mp-units v2.5.0 (type constraint differs in template redeclaration), so it is skipped"
+  },
+  "mp_units_dimension_mismatch.cpp": {
+    "all": "reject",
+    "clang-19": "skip",
+    "note": "clang 19 cannot parse mp-units v2.5.0 (type constraint differs in template redeclaration), so it is skipped"
+  },
+  "mp_units_quantity_arithmetic.cpp": {
+    "all": "accept",
+    "clang-19": "skip",
+    "note": "clang 19 cannot parse mp-units v2.5.0 (type constraint differs in template redeclaration), so it is skipped"
+  },
+  "mp_units_rate_and_percent.cpp": {
+    "all": "accept",
+    "clang-19": "skip",
+    "clang-22": "reject",
+    "note": "clang 22.1.8 rejects `25. * percent` against mp-units v2.5.0 (operator* constraint); 21 and 23 accept; clang 19 cannot parse mp-units v2.5.0 (type constraint differs in template redeclaration), so it is skipped"
+  }
+}

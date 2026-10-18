@@ -1,0 +1,282 @@
+{
+  "assign_same_member_twice.cpp": {
+    "apple-clang": "accept",
+    "clang": "accept",
+    "gcc": "accept"
+  },
+  "bare_integers_mix_units.cpp": {
+    "apple-clang": "accept",
+    "clang": "accept",
+    "gcc": "accept"
+  },
+  "chrono_mixed_clocks_do_not_subtract.cpp": {
+    "apple-clang": "reject",
+    "clang": "reject",
+    "gcc": "reject"
+  },
+  "chrono_narrowing_needs_a_cast.cpp": {
+    "apple-clang": "reject",
+    "clang": "reject",
+    "gcc": "reject"
+  },
+  "chrono_widening_is_implicit.cpp": {
+    "apple-clang": "accept",
+    "clang": "accept",
+    "gcc": "accept"
+  },
+  "container_from_runtime_range.cpp": {
+    "apple-clang": "accept",
+    "clang": "accept",
+    "gcc": "accept"
+  },
+  "container_initializer_list.cpp": {
+    "apple-clang": "accept",
+    "clang": "accept",
+    "gcc": "accept"
+  },
+  "container_type_with_initializer_list_constructor.cpp": {
+    "apple-clang": "accept",
+    "clang": "accept",
+    "gcc": "accept"
+  },
+  "cplusplus_version_is_not_library_support.cpp": {
+    "apple-clang": "reject",
+    "clang+libc++": "reject",
+    "clang+libstdc++": "reject",
+    "flags": [
+      "-std=c++2c",
+      "-c"
+    ],
+    "gcc": "accept",
+    "note": "clang follows the standard library it is paired with. Measured: libc++ 21.1.8, 22.1.6 (Apple SDK) and 23.1.1 define neither __cpp_lib_move_only_function nor __cpp_lib_function_ref; libstdc++ from Debian's GCC 14 has move_only_function and lacks function_ref; libstdc++ 16.2 has both"
+  },
+  "designated_in_cxx17.cpp": {
+    "apple-clang": "accept",
+    "clang": "accept",
+    "flags": [
+      "-std=c++17",
+      "-Wall",
+      "-Wextra",
+      "-c"
+    ],
+    "gcc": "accept"
+  },
+  "designated_in_cxx17.pedantic_errors": {
+    "apple-clang": "reject",
+    "clang": "reject",
+    "flags": [
+      "-std=c++17",
+      "-pedantic-errors",
+      "-c"
+    ],
+    "gcc": "reject",
+    "source": "designated_in_cxx17.cpp"
+  },
+  "designated_in_declaration_order.cpp": {
+    "apple-clang": "accept",
+    "clang": "accept",
+    "gcc": "accept"
+  },
+  "designated_mixed_with_positional.cpp": {
+    "apple-clang": "warn",
+    "clang": "warn",
+    "gcc": "reject"
+  },
+  "designated_omit_member_without_default.cpp": {
+    "apple-clang": "accept",
+    "clang": "warn",
+    "gcc": "warn"
+  },
+  "designated_omit_member_without_default.wall_only": {
+    "apple-clang": "accept",
+    "clang": "accept",
+    "flags": [
+      "-std=c++23",
+      "-Wall",
+      "-O2",
+      "-c"
+    ],
+    "gcc": "accept",
+    "source": "designated_omit_member_without_default.cpp"
+  },
+  "designated_omit_member_without_default.werror": {
+    "apple-clang": "accept",
+    "clang": "reject",
+    "flags": [
+      "-std=c++23",
+      "-Wall",
+      "-Wextra",
+      "-O2",
+      "-c",
+      "-Werror"
+    ],
+    "gcc": "reject",
+    "source": "designated_omit_member_without_default.cpp"
+  },
+  "designated_on_type_with_constructor.cpp": {
+    "apple-clang": "reject",
+    "clang": "reject",
+    "gcc": "reject"
+  },
+  "designated_out_of_declaration_order.cpp": {
+    "apple-clang": "warn",
+    "clang": "warn",
+    "gcc": "reject"
+  },
+  "designated_out_of_declaration_order.werror": {
+    "apple-clang": "reject",
+    "clang": "reject",
+    "flags": [
+      "-std=c++23",
+      "-Wall",
+      "-Wextra",
+      "-O2",
+      "-c",
+      "-Werror"
+    ],
+    "gcc": "reject",
+    "source": "designated_out_of_declaration_order.cpp"
+  },
+  "designated_same_member_twice.cpp": {
+    "apple-clang": "warn",
+    "clang": "warn",
+    "gcc": "reject"
+  },
+  "designated_skip_member_with_default.cpp": {
+    "apple-clang": "accept",
+    "clang": "accept",
+    "gcc": "accept"
+  },
+  "designated_skip_member_with_default.werror": {
+    "apple-clang": "accept",
+    "clang": "accept",
+    "flags": [
+      "-std=c++23",
+      "-Wall",
+      "-Wextra",
+      "-O2",
+      "-c",
+      "-Werror"
+    ],
+    "gcc": "accept",
+    "source": "designated_skip_member_with_default.cpp"
+  },
+  "feature_test_gated_facilities.cpp": {
+    "apple-clang": "accept",
+    "clang": "accept",
+    "gcc": "accept"
+  },
+  "feature_test_gated_facilities.cxx26": {
+    "apple-clang": "accept",
+    "clang": "accept",
+    "flags": [
+      "-std=c++2c",
+      "-Wall",
+      "-Wextra",
+      "-O2",
+      "-c"
+    ],
+    "gcc": "accept",
+    "source": "feature_test_gated_facilities.cpp"
+  },
+  "function_ref_ungated.cpp": {
+    "apple-clang": "reject",
+    "clang+libc++": "reject",
+    "clang+libstdc++": "reject",
+    "flags": [
+      "-std=c++2c",
+      "-Wall",
+      "-Wextra",
+      "-O2",
+      "-c"
+    ],
+    "gcc": "accept",
+    "note": "clang follows the standard library it is paired with. Measured: libc++ 21.1.8, 22.1.6 (Apple SDK) and 23.1.1 define neither __cpp_lib_move_only_function nor __cpp_lib_function_ref; libstdc++ from Debian's GCC 14 has move_only_function and lacks function_ref; libstdc++ 16.2 has both"
+  },
+  "move_only_function_ungated.cpp": {
+    "apple-clang": "reject",
+    "clang+libc++": "reject",
+    "clang+libstdc++": "accept",
+    "gcc": "accept",
+    "note": "clang follows the standard library it is paired with. Measured: libc++ 21.1.8, 22.1.6 (Apple SDK) and 23.1.1 define neither __cpp_lib_move_only_function nor __cpp_lib_function_ref; libstdc++ from Debian's GCC 14 has move_only_function and lacks function_ref; libstdc++ 16.2 has both"
+  },
+  "range_for_borrows_each_element.cpp": {
+    "apple-clang": "accept",
+    "clang": "accept",
+    "gcc": "accept"
+  },
+  "range_for_copies_each_element.cpp": {
+    "apple-clang": "warn",
+    "clang": "warn",
+    "gcc": "warn"
+  },
+  "return_by_value_local.cpp": {
+    "apple-clang": "accept",
+    "clang": "accept",
+    "gcc": "accept"
+  },
+  "return_std_move_of_local.cpp": {
+    "apple-clang": "warn",
+    "clang": "warn",
+    "gcc": "warn"
+  },
+  "shared_const_snapshot.cpp": {
+    "apple-clang": "accept",
+    "clang": "accept",
+    "gcc": "accept"
+  },
+  "sink_parameter_moves.cpp": {
+    "apple-clang": "accept",
+    "clang": "accept",
+    "gcc": "accept"
+  },
+  "span_over_temporary_vector.cpp": {
+    "apple-clang": "warn",
+    "clang": "warn",
+    "gcc": "accept"
+  },
+  "view_from_returned_string.cpp": {
+    "apple-clang": "warn",
+    "clang": "warn",
+    "gcc": "accept"
+  },
+  "view_from_temporary_string.cpp": {
+    "apple-clang": "warn",
+    "clang": "warn",
+    "gcc": "accept"
+  },
+  "view_from_temporary_string.werror": {
+    "apple-clang": "reject",
+    "clang": "reject",
+    "flags": [
+      "-std=c++23",
+      "-Wall",
+      "-Wextra",
+      "-O2",
+      "-c",
+      "-Werror"
+    ],
+    "gcc": "accept",
+    "source": "view_from_temporary_string.cpp"
+  },
+  "view_of_local_returned.cpp": {
+    "apple-clang": "accept",
+    "clang": "accept",
+    "gcc": "accept"
+  },
+  "view_of_local_string_returned_implicitly.cpp": {
+    "apple-clang": "warn",
+    "clang": "warn",
+    "gcc": "accept"
+  },
+  "view_param_borrows.cpp": {
+    "apple-clang": "accept",
+    "clang": "accept",
+    "gcc": "accept"
+  },
+  "wall_clock_single_source.cpp": {
+    "apple-clang": "accept",
+    "clang": "accept",
+    "gcc": "accept"
+  }
+}
