@@ -5,7 +5,7 @@ description: Use when starting a new C++ project or library that uses named modu
 
 # Modules starter
 
-`${CLAUDE_SKILL_DIR}/../../templates/modules-starter/` builds and passes with GCC 16.2 and CMake 4.4 on macOS and in
+`${CLAUDE_PLUGIN_ROOT}/templates/modules-starter/` builds and passes with GCC 16.2 and CMake 4.4 on macOS and in
 the `gcc:16` image; `tests/run.sh` rebuilds it with both presets.
 
 ```
@@ -21,7 +21,7 @@ tests/greeter_test.cpp    ctest test without a framework
 Use it:
 
 ```sh
-cp -R "${CLAUDE_SKILL_DIR}/../../templates/modules-starter" my-project && cd my-project
+cp -R "${CLAUDE_PLUGIN_ROOT}/templates/modules-starter" my-project && cd my-project
 CXX=g++-16 cmake --preset host && cmake --build --preset host && ctest --preset host
 CXX=g++-16 cmake --preset asan && cmake --build --preset asan && ctest --preset asan
 ```

@@ -14,7 +14,7 @@ message as no UUID, so do not guess one from memory or from another project.
 1. `cmake --version`. Below 3.31.10, or 3.31.x before 3.31.10 (3.31.6 is what Debian 13 ships), has no
    GCC support for `import std`: install a newer CMake (`pip install "cmake>=4.0.3"` works anywhere).
 2. Take the gate from the table below, or let the script find it:
-   `python3 ${CLAUDE_SKILL_DIR}/../../scripts/find_import_std_gate.py --cmake cmake --cxx g++-16`
+   `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/find_import_std_gate.py --cmake cmake --cxx g++-16`
    (it tries every UUID embedded in the cmake binary in a throwaway project and prints the one that builds).
 3. Set it **before `project()`** (or as `-D` / preset `cacheVariables`), then `CMAKE_CXX_MODULE_STD ON`,
    a standard of at least C++23, and the Ninja generator.

@@ -5,8 +5,8 @@ description: Use when C++ modules or `import std` misbehave with GCC 16 and CMak
 
 # Traps with C++ modules, GCC 16 and CMake
 
-Every row below is a fixture under `${CLAUDE_SKILL_DIR}/../../tests/fixtures/<name>/` that
-`sh ${CLAUDE_SKILL_DIR}/../../tests/run.sh` builds and compares with `tests/fixtures/expectations.json`.
+Every row below is a fixture under `${CLAUDE_PLUGIN_ROOT}/tests/fixtures/<name>/` that
+`sh ${CLAUDE_PLUGIN_ROOT}/tests/run.sh` builds and compares with `tests/fixtures/expectations.json`.
 Results are for **GCC 16.2.0**, macOS arm64 (Homebrew) and Debian 13 (`gcc:16`), CMake 4.4.x. A trap
 that did not reproduce is listed as such: do not "fix" what you cannot show.
 
