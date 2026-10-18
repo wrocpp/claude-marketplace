@@ -11,7 +11,7 @@ A mutant is the source with one small edit (`<` to `<=`, `+` to `-`, a deleted s
 scripts/mutate.sh src/foo.cpp --build "cmake --build build/mutate" --test "ctest --test-dir build/mutate" --changed-lines origin/main
 ```
 
-(`mutate.sh` creates a venv with universalmutator when `mutate` is not on PATH; `mutate.py` needs it installed. Put `build`/`test` in `.claude/cpp-quality-gates.json`, section `mutation`, to drop the flags. The build tree must already be configured and pass unmutated, or the run stops.)
+(`mutate.sh` creates a venv with universalmutator when `mutate` is not on PATH; `mutate.py` needs it installed. `--build` and `--test` are shell commands you type; the config never supplies shell commands. Set `mutation.build_dir`, `mutation.targets` and `mutation.tests` in `.claude/cpp-quality-gates.json` instead and the script runs `cmake --build DIR --target ...` and `ctest --test-dir DIR -R ...` itself. The build tree must already be configured and pass unmutated, or the run stops.)
 
 ## Classes
 

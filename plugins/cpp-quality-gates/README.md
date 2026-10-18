@@ -42,7 +42,16 @@ tests/run.sh, tests/setup.sh, tests/sample/   end-to-end test on a tiny project
 
 ## Project settings
 
-`.claude/cpp-quality-gates.json` (template in `templates/`) holds the roots to score, the CRAP limit, the coverage preset and gcov binary, and the build and test commands of the mutation harness. Every script also takes the same values as options; options win.
+`.claude/cpp-quality-gates.json` (template in `templates/`) holds the roots to score, the CRAP limit, the coverage preset and gcov binary, and for the mutation harness the build directory, target names and test names. Every script also takes the same values as options; options win.
+
+## Untrusted project input
+
+The config, the triage file and the code under test belong to the project, so the scripts treat them as data:
+
+- Each config value is checked by type (relative path of `[A-Za-z0-9_./-]`, at most 128 characters, no `..`; a simple token; a number). A value that fails is ignored, the default applies, and stderr names only the setting, for example `ignored an invalid config value (crap.roots)`; the value is never quoted.
+- The config cannot make a script run a command. The harness runs fixed commands built from validated names (`cmake --build DIR --target T`, `ctest --test-dir DIR -R ^(names)$`). `mutation.build` and `mutation.test` in a config are not run; the script says so by key name. `--build` and `--test` exist only on the command line you or Claude type, where they are visible.
+- Output quotes project text only where it must (a surviving mutant's changed line): control characters are stripped, it is cut to 120 characters and a heading says it is quoted data. Function names print as identifiers only.
+- `tests/run.sh` feeds a config and a source file full of instruction-shaped text and fails if any of it reaches the output or a config command runs.
 
 ## Evidence
 
