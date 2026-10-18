@@ -1,18 +1,34 @@
 {
   "crap": {
-    "roots": ["src"],
+    "roots": [
+      "src"
+    ],
     "max": 8,
-    "suffixes": [".cpp", ".cc", ".cxx", ".cppm", ".hpp", ".h"]
+    "suffixes": [
+      ".cpp",
+      ".cc",
+      ".cxx",
+      ".cppm",
+      ".hpp",
+      ".h"
+    ]
   },
   "coverage": {
     "preset": "coverage",
     "build_dir": "build/coverage",
     "gcov": "gcov",
-    "filters": ["src/"]
+    "filters": [
+      "src/"
+    ]
   },
   "mutation": {
-    "build": "cmake --build build/mutate",
-    "test": "ctest --test-dir build/mutate --output-on-failure",
+    "build_dir": "build/mutate",
+    "targets": [
+      "my_unit_tests"
+    ],
+    "tests": [
+      "my_unit_tests"
+    ],
     "triage": ".claude/mutation_triage.txt",
     "ignore": ".claude/mutation_ignore.txt",
     "sample": 200,

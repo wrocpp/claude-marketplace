@@ -45,7 +45,7 @@ def covered_fraction(function, lines):
 def score_file(lizard, path, lines):
     for function in functions_of(lizard, path):
         fraction = covered_fraction(function, lines)
-        yield function.long_name, function.start_line, function.cyclomatic_complexity, fraction, crap(function.cyclomatic_complexity, fraction)
+        yield function.name, function.start_line, function.cyclomatic_complexity, fraction, crap(function.cyclomatic_complexity, fraction)
 
 
 def source_files(roots, suffixes):
@@ -73,9 +73,9 @@ def main(argv):
     except ImportError:
         print("crap: the lizard module is missing (pip install lizard)", file=sys.stderr)
         return 2
-    roots = arguments.roots or qg_config.get("crap", "roots", ["src"], arguments.config)
-    limit = arguments.max if arguments.max is not None else qg_config.get("crap", "max", DEFAULT_MAX, arguments.config)
-    suffixes = tuple(qg_config.get("crap", "suffixes", DEFAULT_SUFFIXES, arguments.config))
+    roots = arguments.roots or qg_config.get_list("crap", "roots", ["src"], "path", arguments.config)
+    limit = arguments.max if arguments.max is not None else qg_config.get("crap", "max", DEFAULT_MAX, "number", arguments.config)
+    suffixes = tuple(qg_config.get_list("crap", "suffixes", list(DEFAULT_SUFFIXES), "suffix", arguments.config))
     report = coverage_by_line(json.loads(pathlib.Path(arguments.coverage_json).read_text(encoding="utf-8")))
     scored = []
     for path in source_files(roots, suffixes):
@@ -88,7 +88,7 @@ def main(argv):
     offenders = [row for row in scored if row[0] > limit]
     shown = sorted(scored, reverse=True)[: arguments.top] if arguments.top else sorted(offenders, reverse=True)
     for score, path, start, name, complexity, fraction in shown:
-        print(f"CRAP {score:6.1f}  CC {complexity:2d}  cov {fraction:4.0%}  {path}:{start}  {name[:70]}")
+        print(f"CRAP {score:6.1f}  CC {complexity:2d}  cov {fraction:4.0%}  {qg_config.show_path(path)}:{start}  {qg_config.show_name(name)}")
     print(f"{len(scored)} functions, {len(offenders)} above CRAP {limit:g}")
     return 1 if offenders else 0
 

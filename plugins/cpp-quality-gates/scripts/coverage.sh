@@ -24,12 +24,12 @@ done
 QG_CONFIG=$config
 export QG_CONFIG
 cfg() { python3 "$here/qg_config.py" "$@"; }
-[ -n "$preset" ] || preset=$(cfg coverage preset coverage)
-[ -n "$gcov" ] || gcov=$(cfg coverage gcov gcov)
-roots=$(cfg crap roots src)
-filters=$(cfg coverage filters "$roots")
+[ -n "$preset" ] || preset=$(cfg coverage preset coverage token)
+[ -n "$gcov" ] || gcov=$(cfg coverage gcov gcov token)
+roots=$(cfg crap roots src paths)
+filters=$(cfg coverage filters "$roots" paths)
 
-bindir=${bindir:-$(cfg coverage build_dir "build/$preset")}
+bindir=${bindir:-$(cfg coverage build_dir "build/$preset" path)}
 cmake --preset "$preset" >/dev/null
 cmake --build --preset "$preset"
 find "$bindir" -name '*.gcda' -delete
