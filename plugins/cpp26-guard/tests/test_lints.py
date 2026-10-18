@@ -82,10 +82,14 @@ class ConfigTest(unittest.TestCase):
         self.assertIn("std::meta::enumerators_of", finding.render())
 
     def test_a_malformed_config_is_an_error(self):
-        for bad in ({"roots": "src"}, {"rules": {"comment": "yes"}}, {"helpers": {"nonsense": "x"}}):
+        for bad in ({"roots": "src"}, {"rules": {"comment": "yes"}}, {"helpers": ["x"]}):
             with self.subTest(bad=bad):
                 with self.assertRaises(ValueError):
                     lint_common.parse_config(bad)
+
+    def test_an_unknown_helper_is_ignored_and_flagged(self):
+        config = lint_common.parse_config({"helpers": {"nonsense": "x"}})
+        self.assertEqual((config.helpers, config.ignored), ((), True))
 
     def test_roots_exclude_and_suffixes_decide_what_is_covered(self):
         config = Config(roots=("lib",), exclude=("lib/gen/",))

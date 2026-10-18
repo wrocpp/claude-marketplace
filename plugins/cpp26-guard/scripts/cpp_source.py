@@ -42,6 +42,10 @@ class Source:
         lines = self.text.splitlines()
         return lines[number - 1] if 0 < number <= len(lines) else ""
 
+    def skeleton_line_text(self, number):
+        lines = self.skeleton.splitlines()
+        return lines[number - 1].strip() if 0 < number <= len(lines) else ""
+
     def text_at(self, offset):
         return self.line_text(self.line(offset)).strip()
 

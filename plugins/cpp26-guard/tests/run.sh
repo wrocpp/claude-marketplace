@@ -28,6 +28,12 @@ else
     fail "python unit tests"
 fi
 
+section "hostile config and source text never reach hook output"
+python3 "$here/test_injection.py" >"$work/injection" 2>&1 || {
+    cat "$work/injection"
+    fail "injection tests"
+}
+
 section "lint self-tests"
 for lint in reflection_lint cpp26_lint; do
     python3 "$plugin/scripts/$lint.py" --self-test || fail "$lint self-test"

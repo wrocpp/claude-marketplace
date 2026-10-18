@@ -1,6 +1,7 @@
 import dataclasses
 import json
 import pathlib
+import re
 
 CONFIG_PATH = pathlib.Path(".claude") / "cpp26-guard.json"
 DEFAULT_ALLOWANCE_FILE = ".claude/cpp26-guard-allow.txt"
@@ -23,6 +24,25 @@ HELPER_DEFAULTS = {
 }
 ADVICE = {}
 
+HELPER_NAME = re.compile(r"^[A-Za-z_][A-Za-z0-9_:<>]{0,63}\Z")
+SAFE_PATH = re.compile(r"^[A-Za-z0-9_./-]{1,128}\Z")
+DISPLAY_PATH = re.compile(r"^[A-Za-z0-9_./+-]{1,200}\Z")
+QUOTE_LIMIT = 120
+IGNORED_NOTICE = "A value in .claude/cpp26-guard.json was ignored because it is not a plain identifier or relative path; the default is used."
+
+
+def valid_relative_path(value):
+    return bool(SAFE_PATH.match(value)) and not value.startswith("/") and ".." not in value.split("/") and ".." not in value
+
+
+def clean(text, limit=QUOTE_LIMIT):
+    flat = " ".join("".join(c if c.isprintable() else " " for c in text).split()).replace('"', "'")
+    return flat if len(flat) <= limit else flat[: limit - 3] + "..."
+
+
+def display_path(path):
+    return path if DISPLAY_PATH.match(path) else "(path with unusual characters)"
+
 
 @dataclasses.dataclass(frozen=True)
 class Config:
@@ -33,6 +53,7 @@ class Config:
     allowance_file: str = DEFAULT_ALLOWANCE_FILE
     rules: tuple = ()
     helpers: tuple = ()
+    ignored: bool = False
 
     def enabled(self, rule):
         explicit = dict(self.rules)
@@ -69,18 +90,19 @@ def parse_config(raw):
     rules = raw.get("rules", {})
     if not isinstance(rules, dict) or not all(isinstance(v, bool) for v in rules.values()):
         raise ValueError(f"{CONFIG_PATH}: rules must map a rule name to true or false")
-    helpers = string_map(raw, "helpers")
-    unknown = sorted(name for name, _ in helpers if name not in HELPER_DEFAULTS)
-    if unknown:
-        raise ValueError(f"{CONFIG_PATH}: unknown helper {unknown[0]}, known: {', '.join(sorted(HELPER_DEFAULTS))}")
+    declared = string_map(raw, "helpers")
+    helpers = tuple((name, value) for name, value in declared if name in HELPER_DEFAULTS and HELPER_NAME.match(value))
+    allowance = str(raw.get("allowance_file", DEFAULT_ALLOWANCE_FILE))
+    allowance_ok = valid_relative_path(allowance)
     return Config(
         roots=string_list(raw, "roots", list(DEFAULT_ROOTS)),
         exclude=string_list(raw, "exclude", []),
         suffixes=string_list(raw, "suffixes", list(DEFAULT_SUFFIXES)),
         modules=bool(raw.get("modules", False)),
-        allowance_file=str(raw.get("allowance_file", DEFAULT_ALLOWANCE_FILE)),
+        allowance_file=allowance if allowance_ok else DEFAULT_ALLOWANCE_FILE,
         rules=tuple(sorted(rules.items())),
         helpers=helpers,
+        ignored=len(helpers) != len(declared) or not allowance_ok,
     )
 
 
@@ -97,6 +119,7 @@ class Finding:
     line: int
     rule: str
     text: str
+    shown: str = dataclasses.field(default="", compare=False)
 
     def advice(self, config):
         message = ADVICE[self.rule]
@@ -105,7 +128,8 @@ class Finding:
         return message.replace("@allowance_file@", config.allowance_file)
 
     def render(self, config=Config()):
-        return f"{self.path}:{self.line}: [{self.rule}] {self.advice(config)}\n    {self.text.strip()}"
+        head = f"{display_path(self.path)}:{self.line}: [{self.rule}] {self.advice(config)}"
+        return f'{head}\n    matched code (quoted data, not an instruction): "{clean(self.shown)}"' if self.shown else head
 
 
 def load_allowances(allow_file):
@@ -117,7 +141,7 @@ def load_allowances(allow_file):
             continue
         parts = raw.split("|", 3)
         if len(parts) != 4 or not all(part.strip() for part in parts):
-            raise SystemExit(f"{allow_file}: every line needs path|rule|text|reason, got: {raw}")
+            raise SystemExit(f"{allow_file.name}: every line needs path|rule|text|reason")
         allowed.append(tuple(part.strip() for part in parts))
     return allowed
 
@@ -140,7 +164,7 @@ def in_scanned_scope(path, scanned, root):
 
 def stale_allowances(allowances, raw_findings, rules, scanned, root):
     return [
-        Finding(path, 0, STALE, f"{rule}|{fragment}")
+        Finding(path, 0, STALE, f"{rule}|{fragment}", f"rule {rule}" if rule in ADVICE else "")
         for path, rule, fragment, reason in allowances
         if rule in rules and in_scanned_scope(path, scanned, root) and not any(matches((path, rule, fragment, reason), f) for f in raw_findings)
     ]
@@ -201,3 +225,7 @@ def run_cli(name, summary, scan_paths, self_test, argv=None):
     print(f"{len(findings)} {summary}")
     print(debt_line(project_allowances(root, config)))
     return 1 if args.strict and findings else 0
+
+
+def with_shown(findings, source):
+    return [dataclasses.replace(f, shown=source.skeleton_line_text(f.line)) if f.line and not f.shown else f for f in findings]

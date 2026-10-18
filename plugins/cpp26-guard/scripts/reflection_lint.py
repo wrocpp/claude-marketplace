@@ -140,7 +140,8 @@ def raw_findings(path, text, config, enums):
 
 
 def scan_text(path, text, config=Config(), enums=None):
-    return list(dict.fromkeys(f for f in raw_findings(path, text, config, enums) if config.enabled(f.rule)))
+    found = dict.fromkeys(f for f in raw_findings(path, text, config, enums) if config.enabled(f.rule))
+    return lint_common.with_shown(list(found), cpp_source.scan(text))
 
 
 def scan_paths(root, paths, config=Config()):

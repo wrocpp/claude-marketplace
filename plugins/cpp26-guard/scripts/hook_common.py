@@ -34,6 +34,8 @@ def report(headline, found, config):
     lines = [f"{headline} Skills: {', '.join(skills)}."]
     lines.extend(f"[{SKILL_OF_RULE[f.rule]}] {f.render(config)}" for f in found)
     lines.append(f"A real exception gets a justified line in {config.allowance_file} (path|rule|text fragment|reason); a reason starting 'pending:' marks debt to remove.")
+    if config.ignored:
+        lines.append(lint_common.IGNORED_NOTICE)
     return "\n".join(lines)
 
 

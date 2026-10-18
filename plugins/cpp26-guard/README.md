@@ -79,6 +79,10 @@ Everything is optional. Put `.claude/cpp26-guard.json` in the project:
 
 An invalid config makes the lints exit with a message and the hooks stay silent.
 
+### Untrusted input
+
+The project's config, allowance file and source are untrusted, because the hooks run in whatever repository is open and their output becomes part of Claude's context. A helper value must be an identifier (`^[A-Za-z_][A-Za-z0-9_:<>]{0,63}$`) and `allowance_file` a relative path of at most 128 characters from `[A-Za-z0-9_./-]` without `..`; a value that fails is ignored, the default is used, and the output says only that a config value was ignored. Advice sentences are fixed plugin text. A finding quotes the matching line with comments and string contents blanked, control characters removed, at most 120 characters, labelled as quoted data; file names with unusual characters and allowance entries are never echoed. `tests/test_injection.py` checks this with instruction-shaped config values, paths, comments and file names.
+
 ### Allowance file
 
 One line per exception: `path|rule|text fragment|reason`. A path ending in `/` covers a directory. A reason that starts `pending:` is debt to remove; the lints print the count (`allowances: 3 exceptions, 1 pending`). A line whose finding disappeared is reported as `stale-allowance`, which fails `--strict`.
@@ -114,7 +118,7 @@ skills/
   cpp26-idioms/                   SKILL.md, references/rules.md
 tests/
   run.sh setup.sh                 the contract: exit 0 when everything passes
-  test_*.py fixtures/             unit, hook payload and fixture tests
+  test_*.py fixtures/             unit, hook payload, fixture and injection tests
   probes/{supported,absent}/      26 GCC 16.2 capability probes
   reference_selftest.cpp          builds and runs reflect.hpp
 ```

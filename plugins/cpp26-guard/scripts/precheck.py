@@ -2,6 +2,7 @@
 import sys
 
 import hook_common
+import lint_common
 
 
 def new_texts(tool_input):
@@ -16,7 +17,7 @@ def new_texts(tool_input):
 def handle(root, relative, tool_input, config, allowances):
     found = [f for text in new_texts(tool_input) for f in hook_common.findings_in(relative, text, config, allowances)]
     if found:
-        headline = f"The new text for {relative} repeats a definition or misses a C++26 idiom (line numbers count inside the new text). Rewrite it before it lands."
+        headline = f"The new text for {lint_common.display_path(relative)} repeats a definition or misses a C++26 idiom (line numbers count inside the new text). Rewrite it before it lands."
         hook_common.emit("PreToolUse", hook_common.report(headline, found, config))
 
 
