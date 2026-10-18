@@ -28,7 +28,6 @@ HELPER_NAME = re.compile(r"^[A-Za-z_][A-Za-z0-9_:<>]{0,63}\Z")
 SAFE_PATH = re.compile(r"^[A-Za-z0-9_./-]{1,128}\Z")
 DISPLAY_PATH = re.compile(r"^[A-Za-z0-9_./+-]{1,200}\Z")
 QUOTE_LIMIT = 120
-IGNORED_KEYS = ("helpers", "allowance_file")
 
 
 def valid_relative_path(value):
@@ -72,45 +71,77 @@ class Config:
         return in_roots and path.suffix in self.suffixes and not relative.startswith(self.exclude)
 
 
-def string_list(raw, key, default):
-    value = raw.get(key, default)
+def string_list(value):
     if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
-        raise ValueError(f"{CONFIG_PATH}: {key} must be a list of strings")
+        raise ValueError
     return tuple(value)
 
 
-def string_map(raw, key):
-    value = raw.get(key, {})
-    if not isinstance(value, dict) or not all(isinstance(k, str) and isinstance(v, str) for k, v in value.items()):
-        raise ValueError(f"{CONFIG_PATH}: {key} must map strings to strings")
+def boolean(value):
+    if not isinstance(value, bool):
+        raise ValueError
+    return value
+
+
+def rule_switches(value):
+    if not isinstance(value, dict) or not all(isinstance(k, str) and isinstance(v, bool) for k, v in value.items()):
+        raise ValueError
     return tuple(sorted(value.items()))
 
 
+def allowance_path(value):
+    if not isinstance(value, str) or not valid_relative_path(value):
+        raise ValueError
+    return value
+
+
+def helper_map(value):
+    if not isinstance(value, dict) or not all(isinstance(k, str) and isinstance(v, str) for k, v in value.items()):
+        raise ValueError
+    valid = tuple(sorted((k, v) for k, v in value.items() if k in HELPER_DEFAULTS and HELPER_NAME.match(v)))
+    if len(valid) != len(value):
+        raise ValueError(valid)
+    return valid
+
+
+CONFIG_KEYS = {
+    "roots": (string_list, DEFAULT_ROOTS),
+    "exclude": (string_list, ()),
+    "suffixes": (string_list, DEFAULT_SUFFIXES),
+    "modules": (boolean, False),
+    "allowance_file": (allowance_path, DEFAULT_ALLOWANCE_FILE),
+    "rules": (rule_switches, ()),
+    "helpers": (helper_map, ()),
+}
+IGNORED_KEYS = ("config", *CONFIG_KEYS)
+CONFIG_UNREADABLE = "The project config .claude/cpp26-guard.json could not be read; defaults are used."
+
+
 def parse_config(raw):
-    rules = raw.get("rules", {})
-    if not isinstance(rules, dict) or not all(isinstance(v, bool) for v in rules.values()):
-        raise ValueError(f"{CONFIG_PATH}: rules must map a rule name to true or false")
-    declared = string_map(raw, "helpers")
-    helpers = tuple((name, value) for name, value in declared if name in HELPER_DEFAULTS and HELPER_NAME.match(value))
-    allowance = str(raw.get("allowance_file", DEFAULT_ALLOWANCE_FILE))
-    allowance_ok = valid_relative_path(allowance)
-    return Config(
-        roots=string_list(raw, "roots", list(DEFAULT_ROOTS)),
-        exclude=string_list(raw, "exclude", []),
-        suffixes=string_list(raw, "suffixes", list(DEFAULT_SUFFIXES)),
-        modules=bool(raw.get("modules", False)),
-        allowance_file=allowance if allowance_ok else DEFAULT_ALLOWANCE_FILE,
-        rules=tuple(sorted(rules.items())),
-        helpers=helpers,
-        ignored=tuple(key for key, bad in (('helpers', len(helpers) != len(declared)), ('allowance_file', not allowance_ok)) if bad),
-    )
+    if not isinstance(raw, dict):
+        return Config(ignored=("config",))
+    values = {}
+    ignored = []
+    for key, (convert, default) in CONFIG_KEYS.items():
+        if key not in raw:
+            values[key] = default
+            continue
+        try:
+            values[key] = convert(raw[key])
+        except ValueError as partial:
+            values[key] = partial.args[0] if partial.args else default
+            ignored.append(key)
+    return Config(ignored=tuple(ignored), **values)
 
 
 def load_config(root):
     path = pathlib.Path(root) / CONFIG_PATH
     if not path.is_file():
         return Config()
-    return parse_config(json.loads(path.read_text(encoding="utf-8")))
+    try:
+        return parse_config(json.loads(path.read_text(encoding="utf-8")))
+    except (OSError, ValueError, RecursionError):
+        return Config(ignored=("config",))
 
 
 @dataclasses.dataclass(frozen=True)
@@ -219,6 +250,8 @@ def run_cli(name, summary, scan_paths, self_test, argv=None):
         return 1 if failures else 0
     root = pathlib.Path(args.root).resolve()
     config = load_config(root)
+    if config.ignored:
+        print(ignored_notice(config))
     findings = scan_paths(root, args.paths or list(config.roots), config)
     for finding in findings:
         print(finding.render(config))
@@ -233,4 +266,6 @@ def with_shown(findings, source):
 
 def ignored_notice(config):
     keys = [key for key in config.ignored if key in IGNORED_KEYS]
+    if "config" in keys:
+        return CONFIG_UNREADABLE
     return f"A config value was ignored ({', '.join(keys)}); the default is used." if keys else ""

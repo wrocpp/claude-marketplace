@@ -34,6 +34,12 @@ python3 "$here/test_injection.py" >"$work/injection" 2>&1 || {
     fail "injection tests"
 }
 
+section "malformed or wrong-typed config keeps the guard on"
+python3 "$here/test_config.py" >"$work/config" 2>&1 || {
+    cat "$work/config"
+    fail "config tests"
+}
+
 section "lint self-tests"
 for lint in reflection_lint cpp26_lint; do
     python3 "$plugin/scripts/$lint.py" --self-test || fail "$lint self-test"

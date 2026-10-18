@@ -77,7 +77,9 @@ Everything is optional. Put `.claude/cpp26-guard.json` in the project:
 | `rules` | `{}` | `{"<rule>": true/false}` overrides the default for one rule |
 | `helpers` | `{}` | Names the project's own helper in advice. Keys: `enum_name`, `enum_from_name`, `enum_count`, `enum_values`, `member_walk`, `append_all` |
 
-An invalid config makes the lints exit with a message and the hooks stay silent.
+A broken config never switches the guard off. If the file cannot be read, is not valid JSON or is not an object, the defaults are used, the scan still runs, and the hooks and lints add one fixed sentence: "The project config .claude/cpp26-guard.json could not be read; defaults are used." (no parse error, no file content). A key with a wrongly typed value (for example `"roots": 5`) is ignored, its default is used, and the output says "A config value was ignored (roots)", naming the key only. Unknown keys are ignored silently.
+
+`roots` that match no file mean silence: the hooks print nothing and the lints report `0` findings; `"roots": []` turns the scan off. Check the spelling of `roots` if a guard seems quiet.
 
 ### Untrusted input
 

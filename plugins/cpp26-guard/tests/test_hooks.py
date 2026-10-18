@@ -120,10 +120,6 @@ class NeverBlockTest(unittest.TestCase):
         for script in (PRECHECK, POSTCHECK):
             self.assertEqual(self.run_raw(script, "not json"), (0, ""), script.name)
 
-    def test_a_malformed_config_never_blocks(self):
-        project = Project()
-        (project.root / ".claude/cpp26-guard.json").write_text("{nope")
-        self.assertEqual(project.write("src/probe.cpp", HAND_SWITCH), (0, ""))
 
     def test_a_malformed_allowance_file_never_blocks(self):
         self.assertEqual(Project(allow="bad line\n").write("src/probe.cpp", HAND_SWITCH), (0, ""))

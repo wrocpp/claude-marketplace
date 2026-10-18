@@ -81,12 +81,6 @@ class ConfigTest(unittest.TestCase):
         self.assertIn("reflect::enum_name", finding.render(Config(helpers=(("enum_name", "reflect::enum_name"),))))
         self.assertIn("std::meta::enumerators_of", finding.render())
 
-    def test_a_malformed_config_is_an_error(self):
-        for bad in ({"roots": "src"}, {"rules": {"comment": "yes"}}, {"helpers": ["x"]}):
-            with self.subTest(bad=bad):
-                with self.assertRaises(ValueError):
-                    lint_common.parse_config(bad)
-
     def test_an_unknown_helper_is_ignored_and_flagged(self):
         config = lint_common.parse_config({"helpers": {"nonsense": "x"}})
         self.assertEqual((config.helpers, config.ignored), ((), ("helpers",)))
