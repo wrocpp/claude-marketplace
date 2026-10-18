@@ -144,10 +144,14 @@ def has_marker(lines, line_number, marker):
     return False
 
 
+MAX_CONFIG_BYTES = 65536
+
+
 def find_config(start_dirs):
+    """Return (config, readable). A missing file is (None, True); a malformed one is (None, False)."""
     seen = set()
     for start in start_dirs:
-        if not start:
+        if not isinstance(start, (str, os.PathLike)) or not start:
             continue
         directory = pathlib.Path(start).resolve()
         for candidate in (directory, *directory.parents):
@@ -157,14 +161,17 @@ def find_config(start_dirs):
             config = candidate / CONFIG_RELATIVE
             if config.is_file():
                 try:
+                    if config.stat().st_size > MAX_CONFIG_BYTES:
+                        return None, False
                     loaded = json.loads(config.read_text(encoding="utf-8"))
                 except (OSError, ValueError):
-                    return {}
-                return loaded if isinstance(loaded, dict) else {}
-    return {}
+                    return None, False
+                return (loaded, True) if isinstance(loaded, dict) else (None, False)
+    return None, True
 
 
-IDENTIFIER = re.compile(r"[A-Za-z_][A-Za-z0-9_:<>]{0,63}")
+MAX_IDENTIFIER_CHARS = 64
+IDENTIFIER = re.compile(r"[A-Za-z_][A-Za-z0-9_:<>]{0,%d}" % (MAX_IDENTIFIER_CHARS - 1))
 NUMBER_TEXT = re.compile(r"(?:0[xX][0-9a-fA-F']+|[0-9][0-9.'eE+-]*)[A-Za-z]{0,8}")
 PATH_TEXT = re.compile(r"[A-Za-z0-9_./-]{1,128}")
 MAX_NUMBER_TEXT = 24
@@ -173,9 +180,9 @@ RULE_FLAGS = ("block", "disable")
 RULES = ("copies", "numbers")
 
 
-def safe_identifier(text, fallback):
-    """Text taken from source or config may reach Claude only if it is a plain identifier."""
-    return text if IDENTIFIER.fullmatch(text) else fallback
+def safe_identifier(text, fallback="(name)"):
+    """Text taken from source may reach Claude only as a plain identifier of at most 64 characters."""
+    return text if IDENTIFIER.fullmatch(text) else "(name)"
 
 
 def safe_number(text):
@@ -187,23 +194,33 @@ def safe_path(text, fallback="the file"):
     return text if ok else fallback
 
 
+def quoted_data(text, limit=120):
+    """An excerpt of untrusted text: control characters removed, capped, and labelled as data."""
+    flat = "".join(c if c.isprintable() else " " for c in text)
+    flat = " ".join(flat.split())[:limit]
+    return f'quoted data: "{flat}"'
+
+
 def validate_config(raw):
-    """Return (config, ignored): only booleans and finite numbers survive; nothing is ever echoed."""
+    """Return (config, wrong_keys). Only booleans and finite numbers survive.
+
+    wrong_keys names are drawn from the fixed vocabulary below, never from the file.
+    """
     clean = {rule: {} for rule in RULES}
-    ignored = not isinstance(raw, dict) and bool(raw)
+    wrong = []
     for rule in RULES:
         section = raw.get(rule) if isinstance(raw, dict) else None
         if section is None:
             continue
         if not isinstance(section, dict):
-            ignored = True
+            wrong.append(rule)
             continue
         for flag in RULE_FLAGS:
             if flag in section:
                 if isinstance(section[flag], bool):
                     clean[rule][flag] = section[flag]
                 else:
-                    ignored = True
+                    wrong.append(f"{rule}.{flag}")
         if rule == "numbers" and "allow" in section:
             allow = section["allow"]
             numeric = isinstance(allow, list) and len(allow) <= MAX_ALLOW_ENTRIES and all(
@@ -212,8 +229,8 @@ def validate_config(raw):
             if numeric:
                 clean[rule]["allow"] = list(allow)
             else:
-                ignored = True
-    return clean, ignored
+                wrong.append("numbers.allow")
+    return clean, wrong
 
 
 def rule_config(config, rule):

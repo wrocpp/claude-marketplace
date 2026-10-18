@@ -15,7 +15,8 @@ sys.path.insert(0, str(PLUGIN_ROOT / "scripts"))
 
 BLOCK_EXIT = 2
 REPORT_LIMIT = 12
-IGNORED_NOTE = "A value in .claude/cpp-conventions.json was ignored (invalid); defaults were used."
+UNREADABLE_NOTE = "The project config .claude/cpp-conventions.json could not be read; defaults are used."
+WRONG_TYPE_NOTE = "Ignored wrong-typed keys in .claude/cpp-conventions.json: "
 
 
 def new_texts(tool_input):
@@ -67,7 +68,8 @@ def main():
     path = tool_input.get("file_path") or ""
     if not path or not is_cpp_path(path):
         return 0
-    config, ignored = validate_config(find_config([os.path.dirname(path), payload.get("cwd"), os.environ.get("CLAUDE_PROJECT_DIR")]))
+    raw, readable = find_config([os.path.dirname(path), payload.get("cwd"), os.environ.get("CLAUDE_PROJECT_DIR")])
+    config, wrong_keys = validate_config(raw)
     reports = []
     for text in new_texts(tool_input):
         reports.extend(run_scanners(path, text, config))
@@ -75,8 +77,10 @@ def main():
     if not reports:
         return 0
     body = render(path, reports)
-    if ignored:
-        body += "\n" + IGNORED_NOTE
+    if not readable:
+        body += "\n" + UNREADABLE_NOTE
+    if wrong_keys:
+        body += "\n" + WRONG_TYPE_NOTE + ", ".join(wrong_keys) + "."
     blocking = any(block for _, block, _ in reports)
     if blocking:
         print("cpp-conventions (blocking, per .claude/cpp-conventions.json):\n" + body, file=sys.stderr)
