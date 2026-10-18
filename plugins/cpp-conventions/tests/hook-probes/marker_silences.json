@@ -1,0 +1,2 @@
+{"payload": {"tool_name": "Write", "tool_input": {"file_path": "src/a.cpp", "content": "// magic-ok: RFC 9110 default port\nint port() { return 8080; }\n"}},
+ "expect": {"exit": 0, "silent": true}}

@@ -1,0 +1,2 @@
+{"payload": {"tool_name": "Edit", "tool_input": {"file_path": "src/a.cc", "old_string": "x", "new_string": "int wait() { return 250; }"}},
+ "expect": {"exit": 0, "stdout_contains": ["bare number 250"]}}
