@@ -1,0 +1,3 @@
+{"config": {"copies": {"block": true}},
+ "payload": {"tool_name": "Write", "tool_input": {"file_path": "src/a.cpp", "content": "int f(const std::string& s) { return s.size(); }\n"}},
+ "expect": {"exit": 2, "stdout_contains": [], "stderr_contains": ["param-const-ref", "blocking"]}}

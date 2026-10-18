@@ -1,0 +1,3 @@
+{"config": {"numbers": {"disable": true}, "copies": {"disable": true}},
+ "payload": {"tool_name": "Write", "tool_input": {"file_path": "src/a.cpp", "content": "int wait() { return 250; }\nint f(const std::string& s);\n"}},
+ "expect": {"exit": 0, "silent": true}}
