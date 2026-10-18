@@ -1,0 +1,60 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "17 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  manifests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: python3 scripts/validate.py
+      - run: python3 scripts/sync.py --check
+      - run: npm install --global @anthropic-ai/claude-code
+      - run: claude plugin validate --strict .
+
+  plugins:
+    needs: manifests
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    container: gcc:16
+    strategy:
+      fail-fast: false
+      matrix:
+        plugin: [cpp26-guard, cpp-quality-gates, cpp-conventions, cpp-modules, cpp-fuzzing]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install test dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends python3 python3-venv clang cmake ninja-build git curl
+          if [ -f plugins/${{ matrix.plugin }}/tests/setup.sh ]; then sh plugins/${{ matrix.plugin }}/tests/setup.sh; fi
+      - name: Run the plugin tests
+        run: sh plugins/${{ matrix.plugin }}/tests/run.sh
+        env:
+          WROCPP_CI: "1"
+
+  workflows:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker://rhysd/actionlint:1.7.12
+        with:
+          args: -color

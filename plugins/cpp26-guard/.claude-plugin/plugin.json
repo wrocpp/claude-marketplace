@@ -1,0 +1,21 @@
+{
+  "name": "cpp26-guard",
+  "version": "0.1.0",
+  "description": "Keep C++26 code free of hand-written copies of definitions: reflection instead of enum-to-string switches, name tables, flag chains and key/member blocks, with concepts, import std, format and print and a comment policy. Skills, a pre-write advisory hook and tested lints with allowance files.",
+  "author": {
+    "name": "Wro.cpp",
+    "url": "https://wrocpp.github.io"
+  },
+  "homepage": "https://github.com/wrocpp/claude-marketplace/tree/main/plugins/cpp26-guard",
+  "repository": "https://github.com/wrocpp/claude-marketplace",
+  "license": "MIT",
+  "keywords": [
+    "cpp",
+    "cpp26",
+    "reflection",
+    "concepts",
+    "modules",
+    "lint",
+    "hooks"
+  ]
+}

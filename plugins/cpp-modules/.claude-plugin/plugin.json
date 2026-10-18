@@ -1,0 +1,19 @@
+{
+  "name": "cpp-modules",
+  "version": "0.1.0",
+  "description": "Use import std and named modules with CMake and GCC 16: the experimental gate, a working template project and the traps that cost hours, each reproduced by a fixture.",
+  "author": {
+    "name": "Wro.cpp",
+    "url": "https://wrocpp.github.io"
+  },
+  "homepage": "https://github.com/wrocpp/claude-marketplace/tree/main/plugins/cpp-modules",
+  "repository": "https://github.com/wrocpp/claude-marketplace",
+  "license": "MIT",
+  "keywords": [
+    "cpp",
+    "modules",
+    "import-std",
+    "cmake",
+    "gcc"
+  ]
+}

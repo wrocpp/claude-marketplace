@@ -1,0 +1,21 @@
+{
+  "name": "cpp-conventions",
+  "version": "0.1.0",
+  "description": "Evidence-backed C++ conventions: designated initialisers, no needless copies, cppreference lookup, quantities as types and no magic numbers, each rule with compiler fixtures and an advisory pre-write scanner.",
+  "author": {
+    "name": "Wro.cpp",
+    "url": "https://wrocpp.github.io"
+  },
+  "homepage": "https://github.com/wrocpp/claude-marketplace/tree/main/plugins/cpp-conventions",
+  "repository": "https://github.com/wrocpp/claude-marketplace",
+  "license": "MIT",
+  "keywords": [
+    "cpp",
+    "designated-initializers",
+    "string_view",
+    "span",
+    "units",
+    "cppreference",
+    "magic-numbers"
+  ]
+}

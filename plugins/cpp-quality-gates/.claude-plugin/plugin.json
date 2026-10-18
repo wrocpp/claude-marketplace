@@ -1,0 +1,21 @@
+{
+  "name": "cpp-quality-gates",
+  "version": "0.1.0",
+  "description": "Make 'done' mean measured: a sanitizer matrix, a CRAP gate, mutation testing, coverage, compile-time undefined-behaviour checks and compiler capability tests, as skills with runnable scripts and CMake and CI templates.",
+  "author": {
+    "name": "Wro.cpp",
+    "url": "https://wrocpp.github.io"
+  },
+  "homepage": "https://github.com/wrocpp/claude-marketplace/tree/main/plugins/cpp-quality-gates",
+  "repository": "https://github.com/wrocpp/claude-marketplace",
+  "license": "MIT",
+  "keywords": [
+    "cpp",
+    "sanitizers",
+    "coverage",
+    "mutation-testing",
+    "crap",
+    "ci",
+    "cmake"
+  ]
+}

@@ -1,0 +1,126 @@
+{
+  "name": "wrocpp",
+  "description": "Plugins that help Claude Code write C++ you would be happy to maintain, from the Wro.cpp community.",
+  "owner": {
+    "name": "Wro.cpp",
+    "url": "https://wrocpp.github.io"
+  },
+  "metadata": {
+    "description": "C++ plugins from Wro.cpp: C++26 reflection and idioms, quality gates, evidence-backed conventions, modules and fuzzing.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "cpp26-guard",
+      "source": "./plugins/cpp26-guard",
+      "description": "Keep C++26 code free of hand-written copies of definitions: reflection instead of enum-to-string switches, name tables, flag chains and key/member blocks, with concepts, import std, format and print and a comment policy. Skills, a pre-write advisory hook and tested lints with allowance files.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Wro.cpp",
+        "url": "https://wrocpp.github.io"
+      },
+      "license": "MIT",
+      "keywords": [
+        "cpp",
+        "cpp26",
+        "reflection",
+        "concepts",
+        "modules",
+        "lint",
+        "hooks"
+      ]
+    },
+    {
+      "name": "cpp-quality-gates",
+      "source": "./plugins/cpp-quality-gates",
+      "description": "Make 'done' mean measured: a sanitizer matrix, a CRAP gate, mutation testing, coverage, compile-time undefined-behaviour checks and compiler capability tests, as skills with runnable scripts and CMake and CI templates.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Wro.cpp",
+        "url": "https://wrocpp.github.io"
+      },
+      "license": "MIT",
+      "keywords": [
+        "cpp",
+        "sanitizers",
+        "coverage",
+        "mutation-testing",
+        "crap",
+        "ci",
+        "cmake"
+      ]
+    },
+    {
+      "name": "cpp-conventions",
+      "source": "./plugins/cpp-conventions",
+      "description": "Evidence-backed C++ conventions: designated initialisers, no needless copies, cppreference lookup, quantities as types and no magic numbers, each rule with compiler fixtures and an advisory pre-write scanner.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Wro.cpp",
+        "url": "https://wrocpp.github.io"
+      },
+      "license": "MIT",
+      "keywords": [
+        "cpp",
+        "designated-initializers",
+        "string_view",
+        "span",
+        "units",
+        "cppreference",
+        "magic-numbers"
+      ]
+    },
+    {
+      "name": "cpp-modules",
+      "source": "./plugins/cpp-modules",
+      "description": "Use import std and named modules with CMake and GCC 16: the experimental gate, a working template project and the traps that cost hours, each reproduced by a fixture.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Wro.cpp",
+        "url": "https://wrocpp.github.io"
+      },
+      "license": "MIT",
+      "keywords": [
+        "cpp",
+        "modules",
+        "import-std",
+        "cmake",
+        "gcc"
+      ]
+    },
+    {
+      "name": "cpp-fuzzing",
+      "source": "./plugins/cpp-fuzzing",
+      "description": "Property-based and fuzz testing recipes for C++: one property function reused by AFL++ harnesses, corpus replay at compile time with #embed, bounded-exhaustive constexpr checks and compile-time undefined-behaviour detection.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Wro.cpp",
+        "url": "https://wrocpp.github.io"
+      },
+      "license": "MIT",
+      "keywords": [
+        "cpp",
+        "fuzzing",
+        "afl",
+        "property-testing",
+        "constexpr",
+        "ub"
+      ]
+    },
+    {
+      "name": "tidy-agent",
+      "source": {
+        "source": "git-subdir",
+        "url": "wrocpp/tidy-agent",
+        "path": "plugins/tidy-agent"
+      },
+      "description": "Run clang-tidy on every C++ file the agent edits, and turn recurring agent mistakes into tested clang-tidy checks. Pre-release; lives in wrocpp/tidy-agent.",
+      "license": "MIT",
+      "keywords": [
+        "cpp",
+        "clang-tidy",
+        "static-analysis"
+      ]
+    }
+  ]
+}

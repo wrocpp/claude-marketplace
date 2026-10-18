@@ -1,0 +1,20 @@
+{
+  "name": "cpp-fuzzing",
+  "version": "0.1.0",
+  "description": "Property-based and fuzz testing recipes for C++: one property function reused by AFL++ harnesses, corpus replay at compile time with #embed, bounded-exhaustive constexpr checks and compile-time undefined-behaviour detection.",
+  "author": {
+    "name": "Wro.cpp",
+    "url": "https://wrocpp.github.io"
+  },
+  "homepage": "https://github.com/wrocpp/claude-marketplace/tree/main/plugins/cpp-fuzzing",
+  "repository": "https://github.com/wrocpp/claude-marketplace",
+  "license": "MIT",
+  "keywords": [
+    "cpp",
+    "fuzzing",
+    "afl",
+    "property-testing",
+    "constexpr",
+    "ub"
+  ]
+}
