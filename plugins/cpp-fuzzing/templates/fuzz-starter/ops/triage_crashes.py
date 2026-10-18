@@ -11,12 +11,19 @@ from the findings directory is used in the destination path.
 import argparse
 import hashlib
 import pathlib
+import re
 import shutil
 import sys
 
 KINDS = {"crashes": "crash", "hangs": "hang"}
 NAME_LENGTH = 16
 MAX_BYTES = 1 << 20
+MAX_NAME = 64
+SAFE_NAME = re.compile(r"[A-Za-z0-9_.:,=-]+")
+
+
+def printable(name):
+    return name if len(name) <= MAX_NAME and SAFE_NAME.fullmatch(name) else "(name)"
 
 
 def candidates(findings):
@@ -39,7 +46,7 @@ def main(argv):
     for kind, path in candidates(args.findings):
         size = path.stat().st_size
         if size > MAX_BYTES:
-            print(f"skip {path.name}: {size} bytes is above {MAX_BYTES}")
+            print(f"skip {printable(path.name)}: {size} bytes is above {MAX_BYTES}")
             skipped += 1
             continue
         digest = hashlib.sha256(path.read_bytes()).hexdigest()[:NAME_LENGTH]

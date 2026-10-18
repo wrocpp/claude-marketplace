@@ -144,8 +144,10 @@ sh "$template/ops/fuzz.sh" parse -5 >/dev/null 2>&1 && refused=0
 sh "$template/ops/fuzz.sh" parse 1 -x >/dev/null 2>&1 && refused=0
 mkdir -p "$work/hostile/default/crashes"
 printf 'z' >"$work/hostile/default/crashes/"'id:000000,$(touch pwned);touch pwned2;-rf'
+hostile_file=$(ls "$work/hostile/default/crashes")
+[ -f "$work/hostile/default/crashes/$hostile_file" ] || refused=0
 (cd "$work" && python3 -I "$template/ops/triage_crashes.py" "$work/hostile" "$work/hostile-corpus" >/dev/null 2>&1)
-[ -n "$(ls "$work/hostile-corpus" 2>/dev/null)" ] || refused=0
+ls "$work/hostile-corpus" 2>/dev/null | grep -q '^crash-[0-9a-f]\{16\}$' || refused=0
 if [ "$refused" = 1 ] && [ ! -e "$work/pwned" ] && [ ! -e "$work/pwned2" ] && [ -e "$canary" ]; then
   pass "fuzz.sh refuses dash-leading and shell-shaped arguments; hostile crash names are inert"
 else
