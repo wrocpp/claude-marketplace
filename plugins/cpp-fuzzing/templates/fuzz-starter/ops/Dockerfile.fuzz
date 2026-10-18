@@ -1,0 +1,9 @@
+FROM gcc:16
+ARG AFLPP_REF=v5.03c
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends cmake ninja-build git make python3 ca-certificates \
+ && rm -rf /var/lib/apt/lists/* \
+ && git clone --depth 1 --branch "${AFLPP_REF}" https://github.com/AFLplusplus/AFLplusplus /opt/aflpp \
+ && make -C /opt/aflpp -j"$(nproc)" source-only NO_NYX=1 NO_PYTHON=1 NO_SPLICING=1 CC=gcc CXX=g++ \
+ && make -C /opt/aflpp install PREFIX=/usr/local \
+ && rm -rf /opt/aflpp
