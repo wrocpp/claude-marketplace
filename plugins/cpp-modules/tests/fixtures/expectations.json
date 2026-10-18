@@ -1,0 +1,206 @@
+{
+  "fixtures": {
+    "include-after-import": {
+      "outcome": "fails",
+      "status": "reproduced",
+      "contains": "redefinition of",
+      "gcc": [
+        "16.2.0"
+      ],
+      "note": "#include of a standard header after import std"
+    },
+    "include-before-import": {
+      "outcome": "builds",
+      "status": "works",
+      "gcc": [
+        "16.2.0"
+      ],
+      "note": "#include of a standard header before import std"
+    },
+    "coroutine-in-interface": {
+      "outcome": "fails",
+      "status": "reproduced",
+      "contains": "Bad file data",
+      "gcc": [
+        "16.2.0"
+      ]
+    },
+    "coroutine-in-impl-unit": {
+      "outcome": "builds",
+      "status": "fixed",
+      "gcc": [
+        "16.2.0"
+      ]
+    },
+    "contracts-inline-exported": {
+      "outcome": "fails",
+      "status": "reproduced",
+      "contains": "__tu_has_violation",
+      "gcc": [
+        "16.2.0"
+      ]
+    },
+    "contracts-non-inline": {
+      "outcome": "builds",
+      "status": "fixed",
+      "gcc": [
+        "16.2.0"
+      ]
+    },
+    "contracts-no-violation-handler": {
+      "outcome": "fails",
+      "status": "reproduced",
+      "contains": "handle_contract_violation",
+      "gcc": [
+        "16.2.0"
+      ]
+    },
+    "optional-module-type": {
+      "outcome": "builds",
+      "status": "not-reproduced",
+      "gcc": [
+        "16.2.0"
+      ]
+    },
+    "expected-module-type": {
+      "outcome": "builds",
+      "status": "not-reproduced",
+      "gcc": [
+        "16.2.0"
+      ]
+    },
+    "defaulted-eq-first-used-in-importer": {
+      "outcome": "crash",
+      "status": "reproduced",
+      "contains": "internal compiler error",
+      "gcc": [
+        "16.2.0"
+      ]
+    },
+    "defaulted-eq-used-in-module": {
+      "outcome": "builds",
+      "status": "fixed",
+      "gcc": [
+        "16.2.0"
+      ]
+    },
+    "reflected-string-under-asan": {
+      "outcome": "fails",
+      "status": "reproduced",
+      "contains": "is not a constant expression",
+      "gcc": [
+        "16.2.0"
+      ]
+    },
+    "reflected-string-no-sanitize": {
+      "outcome": "builds",
+      "status": "fixed",
+      "gcc": [
+        "16.2.0"
+      ]
+    },
+    "reflected-string-view-under-asan": {
+      "outcome": "builds",
+      "status": "fixed",
+      "gcc": [
+        "16.2.0"
+      ]
+    },
+    "add-sat-not-exported": {
+      "outcome": "fails",
+      "status": "reproduced",
+      "contains": "'add_sat' is not a member of 'std'",
+      "gcc": [
+        "16.2.0"
+      ]
+    },
+    "format-in-constexpr": {
+      "outcome": "fails",
+      "status": "reproduced",
+      "contains": "call to non-'constexpr' function",
+      "gcc": [
+        "16.2.0"
+      ]
+    },
+    "display-string-of-module-enum-suffix": {
+      "outcome": "builds",
+      "status": "behaviour",
+      "gcc": [
+        "16.2.0"
+      ]
+    },
+    "free-nonheap-object-braced-vector": {
+      "outcome": "builds",
+      "status": "not-reproduced",
+      "gcc": [
+        "16.2.0"
+      ]
+    },
+    "coroutine-header-with-import-std": {
+      "outcome": "builds",
+      "status": "works",
+      "gcc": [
+        "16.2.0"
+      ]
+    },
+    "cmake-minimum-below-3-28": {
+      "outcome": "fails",
+      "status": "reproduced",
+      "contains": "'module' does not name a type",
+      "gcc": [
+        "16.2.0"
+      ]
+    },
+    "cmake-minimum-below-3-28-scan-on": {
+      "outcome": "builds",
+      "status": "fixed",
+      "gcc": [
+        "16.2.0"
+      ]
+    },
+    "makefile-generator": {
+      "outcome": "fails",
+      "status": "reproduced",
+      "contains": "Unsupported generator",
+      "gcc": [
+        "16.2.0"
+      ],
+      "fixture": "coroutine-in-impl-unit",
+      "cmake_args": [
+        "-G",
+        "Unix Makefiles"
+      ]
+    },
+    "c-header-after-import": {
+      "outcome": "fails",
+      "status": "reproduced",
+      "contains": "conflicting declaration",
+      "gcc": [
+        "16.2.0"
+      ]
+    },
+    "macros-not-imported": {
+      "outcome": "fails",
+      "status": "reproduced",
+      "contains": "'assert' was not declared",
+      "gcc": [
+        "16.2.0"
+      ]
+    },
+    "macros-header-before-import": {
+      "outcome": "builds",
+      "status": "fixed",
+      "gcc": [
+        "16.2.0"
+      ]
+    },
+    "module-source-without-file-set": {
+      "outcome": "fails",
+      "status": "reproduced",
+      "contains": "is not found in a `FILE_SET` of type `CXX_MODULES`",
+      "gcc": [
+        "16.2.0"
+      ]
+    }
+  }
+}
