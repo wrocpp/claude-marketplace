@@ -60,6 +60,12 @@ hook returns becomes part of Claude's context, so it must not be a channel for i
   strips control characters and newlines, and puts it in a clearly labelled quote.
 - **Advice text comes from the plugin, not from the project.** Fixed sentences, with at most a validated
   identifier or path substituted in.
+- **A value that becomes a command-line argument never starts with `-`.** Reject it when validating
+  (`[A-Za-z0-9_.]` first), and separate it from options anyway: pass `--` where the tool supports it, or
+  prefix a path with `./`. `find "$dir" -delete` with `dir=-delete` deletes the whole working tree on
+  GNU find; BSD find refuses it, so a green run on macOS proves nothing. A test plants a canary file and
+  a leading-dash value for every config value that reaches a command line, and asserts the canary
+  survives on Linux (run it in the CI container).
 - A test feeds a config and a source line that contain instructions and asserts none of that text
   appears in the hook output.
 
