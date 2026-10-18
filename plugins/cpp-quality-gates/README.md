@@ -50,11 +50,12 @@ tests/run.sh, tests/setup.sh, tests/sample/   end-to-end test on a tiny project
 
 - **No shell.** Nothing is run with `shell=True`. A configured or command-line command (`mutation.build`, `mutation.test`, `--build`, `--test`) is split with `shlex.split` into an argument list (`qg_config.split_command`, `scripts/qg_config.py`) and refused if it contains `; | & $ ` < > ( )`, a backslash or a newline. The shell scripts quote every variable and pass lists with `set --`.
 - **Validation, then refusal.** A value that reaches a command line or path must be a token (`[A-Za-z0-9_.+-]`, at most 64), a relative path (`[A-Za-z0-9_./-]`, at most 128, no `..`, no leading `/`) or an integer in range. An invalid value stops the script with exit 2 and a message that names the setting (`invalid value for coverage.preset`), never the value.
+- **Never an option.** No token, name or path starts with `-` (a value like `-delete` would be read by GNU `find` as an action and delete the tree). Paths reach tools as `./`-prefixed operands, and `coverage.sh` deletes `.gcda` files only in a build directory that exists, is a directory and resolves (symlinks followed) to somewhere inside the project.
 - **Fixed commands preferred.** `mutation.build_dir` with `mutation.targets` and `mutation.tests` runs `cmake --build DIR --target T...` and `ctest --test-dir DIR -R ^(names)$`; no free-form command is involved.
 - **You see what runs.** `mutate.py` prints the exact argument lists it will run (`build:` and `test:` lines) and `--dry-run` prints them and stops.
 - **Still your privileges.** A build and test command executes the project's code with your privileges, exactly like the project's own build. Review `.claude/cpp-quality-gates.json` of an unfamiliar repository before running the gates.
 - **Output is data.** Function names print as identifiers only; a surviving mutant's source line is quoted with control characters stripped, cut to 120 characters, under a heading that says it is quoted data.
-- `tests/run.sh` refuses 24 hostile configs and options (metacharacters, `$(...)`, backticks, newlines, spaces, globs, `..`, absolute paths, text where a number belongs), checks that a marker file is never created, and that instruction-shaped text in a config or in source never reaches the output.
+- `tests/run.sh` refuses 24 hostile configs and options (metacharacters, `$(...)`, backticks, newlines, spaces, globs, `..`, absolute paths, text where a number belongs), checks that a marker file is never created, that 46 leading-dash values (`-delete`, `--help`, `-x`, `-rf` in every setting that reaches a command) are refused with exit 2 while canary files survive, and that instruction-shaped text in a config or in source never reaches the output.
 
 ## Evidence
 
