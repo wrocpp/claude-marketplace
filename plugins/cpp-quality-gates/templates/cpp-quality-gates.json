@@ -1,0 +1,38 @@
+{
+  "crap": {
+    "roots": [
+      "src"
+    ],
+    "max": 8,
+    "suffixes": [
+      ".cpp",
+      ".cc",
+      ".cxx",
+      ".cppm",
+      ".hpp",
+      ".h"
+    ]
+  },
+  "coverage": {
+    "preset": "coverage",
+    "build_dir": "build/coverage",
+    "gcov": "gcov",
+    "filters": [
+      "src/"
+    ]
+  },
+  "mutation": {
+    "build_dir": "build/mutate",
+    "targets": [
+      "my_unit_tests"
+    ],
+    "tests": [
+      "my_unit_tests"
+    ],
+    "triage": ".claude/mutation_triage.txt",
+    "ignore": ".claude/mutation_ignore.txt",
+    "sample": 200,
+    "seed": 1,
+    "compile_time_marker": "static assertion failed"
+  }
+}

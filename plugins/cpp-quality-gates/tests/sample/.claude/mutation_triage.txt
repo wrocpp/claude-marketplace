@@ -1,0 +1,4 @@
+# key | kind | reason
+src/saturate.cpp:3:908c0301 | equivalent | swapping the parameters a and b changes nothing because addition commutes
+src/saturate.cpp:5:de134033 | equivalent | sum == lo returns lo on both branches
+src/saturate.cpp:6:89ce76c7 | equivalent | sum == hi returns hi on both branches

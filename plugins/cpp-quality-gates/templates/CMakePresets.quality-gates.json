@@ -1,0 +1,85 @@
+{
+  "version": 6,
+  "configurePresets": [
+    {
+      "name": "qg-base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "coverage",
+      "inherits": "qg-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_FLAGS": "--coverage -O0 -g",
+        "CMAKE_EXE_LINKER_FLAGS": "--coverage -O0 -g"
+      }
+    },
+    {
+      "name": "asan",
+      "inherits": "qg-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_FLAGS": "-fsanitize=address,undefined -fsanitize=float-divide-by-zero,float-cast-overflow -fsanitize-address-use-after-scope -fno-omit-frame-pointer -fno-sanitize-recover=all -D_GLIBCXX_ASSERTIONS -ftrivial-auto-var-init=pattern -g -O1",
+        "CMAKE_EXE_LINKER_FLAGS": "-fsanitize=address,undefined -fsanitize=float-divide-by-zero,float-cast-overflow -fsanitize-address-use-after-scope -fno-omit-frame-pointer -fno-sanitize-recover=all -D_GLIBCXX_ASSERTIONS -ftrivial-auto-var-init=pattern -g -O1"
+      }
+    },
+    {
+      "name": "tsan",
+      "inherits": "qg-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_FLAGS": "-fsanitize=thread -fno-omit-frame-pointer -fno-sanitize-recover=all -D_GLIBCXX_ASSERTIONS -ftrivial-auto-var-init=pattern -g -O1",
+        "CMAKE_EXE_LINKER_FLAGS": "-fsanitize=thread -fno-omit-frame-pointer -fno-sanitize-recover=all -D_GLIBCXX_ASSERTIONS -ftrivial-auto-var-init=pattern -g -O1"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "coverage",
+      "configurePreset": "coverage"
+    },
+    {
+      "name": "asan",
+      "configurePreset": "asan"
+    },
+    {
+      "name": "tsan",
+      "configurePreset": "tsan"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "coverage",
+      "configurePreset": "coverage",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "asan",
+      "configurePreset": "asan",
+      "output": {
+        "outputOnFailure": true
+      },
+      "environment": {
+        "ASAN_OPTIONS": "abort_on_error=1:strict_string_checks=1:detect_stack_use_after_return=1",
+        "UBSAN_OPTIONS": "print_stacktrace=1:halt_on_error=1"
+      }
+    },
+    {
+      "name": "tsan",
+      "configurePreset": "tsan",
+      "output": {
+        "outputOnFailure": true
+      },
+      "environment": {
+        "TSAN_OPTIONS": "halt_on_error=1:second_deadlock_stack=1"
+      }
+    }
+  ]
+}

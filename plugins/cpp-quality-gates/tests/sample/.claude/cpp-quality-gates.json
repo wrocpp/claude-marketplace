@@ -1,0 +1,27 @@
+{
+  "crap": {
+    "roots": [
+      "src"
+    ],
+    "max": 8
+  },
+  "coverage": {
+    "preset": "coverage",
+    "build_dir": "build/coverage",
+    "filters": [
+      "src/"
+    ]
+  },
+  "mutation": {
+    "triage": ".claude/mutation_triage.txt",
+    "ignore": ".claude/mutation_ignore.txt",
+    "sample": 0,
+    "build_dir": "build/mutate",
+    "targets": [
+      "saturate_test"
+    ],
+    "tests": [
+      "saturate_test"
+    ]
+  }
+}
