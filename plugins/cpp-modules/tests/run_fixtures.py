@@ -102,6 +102,8 @@ def main():
     parser.add_argument("--only", nargs="*", default=[])
     parser.add_argument("--observe", action="store_true")
     arguments = parser.parse_args()
+    if arguments.cmake.startswith("-") or arguments.cxx.startswith("-"):
+        parser.error("--cmake and --cxx name programs and must not start with '-'")
     expectations = json.loads((FIXTURES / "expectations.json").read_text(encoding="utf-8"))
     entries = {name: entry for name, entry in expectations["fixtures"].items() if not arguments.only or name in arguments.only}
     for name, entry in entries.items():

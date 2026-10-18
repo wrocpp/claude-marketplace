@@ -70,6 +70,8 @@ def main():
     parser.add_argument("--cxx", default="g++")
     parser.add_argument("--std", default="23", choices=("23", "26"))
     arguments = parser.parse_args()
+    if arguments.cmake.startswith("-") or arguments.cxx.startswith("-"):
+        parser.error("--cmake and --cxx name programs and must not start with '-'")
     if builds(arguments.cmake, arguments.cxx, arguments.std, ""):
         print("none")
         return 0

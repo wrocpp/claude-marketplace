@@ -49,7 +49,7 @@ def gcc_major(compiler):
 def find_compiler():
     candidates = [os.environ.get("CXX"), "g++-16", "g++"]
     for candidate in filter(None, candidates):
-        path = shutil.which(candidate)
+        path = None if candidate.startswith("-") else shutil.which(candidate)
         if path and gcc_major(path) >= MINIMUM_GCC_MAJOR:
             return path
     return None
@@ -65,7 +65,7 @@ def find_cmake():
     venv = os.environ.get("WROCPP_VENV", DEFAULT_VENV)
     candidates = [os.environ.get("CMAKE"), f"{venv}/bin/cmake", "cmake"]
     for candidate in filter(None, candidates):
-        path = shutil.which(candidate)
+        path = None if candidate.startswith("-") else shutil.which(candidate)
         version = cmake_version(path) if path else (0, 0, 0)
         if path and (version >= MINIMUM_CMAKE or version in EXTRA_CMAKE):
             return path
