@@ -164,12 +164,48 @@ if need mutate untrusted && need lizard untrusted; then
   refused "linux-container.sh preset with ;" '{}' "$scripts/linux-container.sh" 'asan;touch HOSTILE_MARKER'
   refused "linux-container.sh IMAGE with a space" '{}' env IMAGE='gcc:16 --privileged' "$scripts/linux-container.sh" asan
 
+  # A value that starts with "-" would be read as an option by find, cmake, gcov and friends:
+  # GNU find with "-delete" as its first operand deletes the tree. Canaries must survive.
+  mkdir -p "$hostile/canary_dir"
+  echo keep > "$hostile/canary.txt"; echo keep > "$hostile/canary_dir/canary.txt"
+  canaries_alive() { [ -f "$hostile/canary.txt" ] && [ -f "$hostile/canary_dir/canary.txt" ] && [ -f "$hostile/src/calc.cpp" ]; }
+  dash_refused() {
+    label=$1; config=$2; shift 2
+    printf '%s\n' "$config" > "$hostile/.claude/h.json"
+    out=$(cd "$hostile" && "$@" 2>&1); code=$?
+    if [ $code -eq 2 ] && canaries_alive && ! echo "$out" | grep -q -E -- "-delete|--help|-rf"; then pass "refused with exit 2, canaries intact: $label"
+    else fail "leading dash not refused cleanly: $label (rc=$code, canaries $(canaries_alive && echo alive || echo GONE))"; fi
+  }
+  for dash in -delete --help -x -rf; do
+    dash_refused "coverage.build_dir $dash" "{\"coverage\":{\"build_dir\":\"$dash\"}}" "$scripts/coverage.sh" -c .claude/h.json
+    dash_refused "coverage.preset $dash"    "{\"coverage\":{\"preset\":\"$dash\"}}"    "$scripts/coverage.sh" -c .claude/h.json
+    dash_refused "coverage.gcov $dash"      "{\"coverage\":{\"gcov\":\"$dash\"}}"      "$scripts/coverage.sh" -c .claude/h.json
+    dash_refused "crap.roots $dash"         "{\"crap\":{\"roots\":[\"$dash\"]}}"       "$scripts/coverage.sh" -c .claude/h.json
+    dash_refused "coverage.filters $dash"   "{\"coverage\":{\"filters\":[\"$dash\"]}}" "$scripts/coverage.sh" -c .claude/h.json
+    dash_refused "mutation.build_dir $dash" "{\"mutation\":{\"build_dir\":\"$dash\",\"targets\":[\"a\"],\"tests\":[\"a\"]}}" mutate_dry
+    dash_refused "mutation.targets $dash"   "{\"mutation\":{\"build_dir\":\"build/mutate\",\"targets\":[\"$dash\"],\"tests\":[\"a\"]}}" mutate_dry
+    dash_refused "mutation.tests $dash"     "{\"mutation\":{\"build_dir\":\"build/mutate\",\"targets\":[\"a\"],\"tests\":[\"$dash\"]}}" mutate_dry
+    dash_refused "mutation.triage $dash"    "{\"mutation\":{\"build_dir\":\"build/mutate\",\"targets\":[\"a\"],\"tests\":[\"a\"],\"triage\":\"$dash\"}}" mutate_dry
+    dash_refused "coverage.sh -b $dash"     '{}' "$scripts/coverage.sh" -b "$dash"
+    dash_refused "coverage.sh -p $dash"     '{}' "$scripts/coverage.sh" -p "$dash"
+  done
+  dash_refused "linux-container.sh preset -delete" '{}' "$scripts/linux-container.sh" -delete
+  dash_refused "linux-container.sh IMAGE -rf" '{}' env IMAGE=-rf "$scripts/linux-container.sh" asan
+
+  # A build directory that is a symlink out of the project must not be cleaned.
+  outside=$work/outside; mkdir "$outside"; echo keep > "$outside/stale.gcda"
+  ln -s "$outside" "$hostile/escape"
+  printf '%s\n' '{"coverage":{"build_dir":"escape"}}' > "$hostile/.claude/h.json"
+  out=$(cd "$hostile" && "$scripts/coverage.sh" -c .claude/h.json 2>&1); code=$?
+  [ $code -eq 2 ] && [ -f "$outside/stale.gcda" ] && pass "a build directory symlinked outside the project is refused and left alone" || fail "symlink escape (rc=$code)"
+  rm "$hostile/escape"
+
   printf '%s\n' '{"mutation":{"build":"cmake --build build/mutate --target saturate_test","test":"build/mutate/saturate_test"}}' > "$hostile/.claude/h.json"
   out=$(cd "$hostile" && mutate_dry 2>&1); code=$?
   [ $code -eq 0 ] && [ "$(echo "$out" | grep -c '^build: cmake --build build/mutate --target saturate_test$')" -eq 1 ] \
     && echo "$out" | grep -q '^test:  build/mutate/saturate_test$' && pass "a valid configured command is accepted and its argument list printed before anything runs" || fail "valid configured command: $out"
   out=$(cd "$sample" && python3 "$scripts/mutate.py" src/saturate.cpp --lines 5 --dry-run 2>&1)
-  echo "$out" | grep -q '^build: cmake --build build/mutate --target saturate_test$' && pass "--dry-run prints the fixed commands built from build_dir, targets and tests" || fail "dry-run fixed commands: $out"
+  echo "$out" | grep -q '^build: cmake --build ./build/mutate --target saturate_test$' && pass "--dry-run prints the fixed commands built from build_dir, targets and tests" || fail "dry-run fixed commands: $out"
 fi
 
 # Text the project controls (source, function parameters) must not travel as instructions either.
