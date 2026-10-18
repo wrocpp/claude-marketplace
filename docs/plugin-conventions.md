@@ -46,6 +46,23 @@ Every plugin README has the line that installs it from this marketplace, because
   `{"<rule>": {"block": true}}`; the report goes to stderr with exit 2.
 - Scanners read text, not compiler state: the compiler may not support what the project uses.
 
+## Hook output is built from untrusted input
+
+A hook runs inside whatever repository the user opens, so everything it reads from that repository is
+untrusted: the project's `.claude/<plugin>.json`, the file being edited, allowance files. The text a
+hook returns becomes part of Claude's context, so it must not be a channel for instructions.
+
+- **Config strings that reach the output are validated, never echoed raw.** A name of a C++ helper must
+  match `^[A-Za-z_][A-Za-z0-9_:<>]{0,63}$`. A path must be relative, use only `[A-Za-z0-9_./-]`, contain
+  no `..` and be at most 128 characters. A value that fails is ignored and the default is used; the
+  output says only that a config value was ignored, without quoting it.
+- **Quoted source is data.** When a hook shows the text it matched, it truncates it (120 characters),
+  strips control characters and newlines, and puts it in a clearly labelled quote.
+- **Advice text comes from the plugin, not from the project.** Fixed sentences, with at most a validated
+  identifier or path substituted in.
+- A test feeds a config and a source line that contain instructions and asserts none of that text
+  appears in the hook output.
+
 ## Tests
 
 - `tests/run.sh` is the contract CI uses. It prints what it ran and exits non-zero on failure.
