@@ -1,23 +1,34 @@
 """Reads .claude/cpp-quality-gates.json. The file belongs to the project, so it is untrusted.
 
-Every value is validated by type before use and is never echoed: an invalid value is ignored,
-the default applies, and stderr names only the setting (section.key), never its content.
+Every value that reaches a command line or a path is validated by type first. An invalid value
+is refused: the script exits 2 and the message names the setting (section.key), never its
+content. Commands are never run through a shell: a configured command is split into an argument
+list and refused if it contains a shell metacharacter.
 """
 import json
 import os
 import pathlib
 import re
+import shlex
 import sys
 
 CONFIG_PATH = pathlib.Path(".claude/cpp-quality-gates.json")
-PATH_PATTERN = re.compile(r"^[A-Za-z0-9_./-]{1,128}$")
-TOKEN_PATTERN = re.compile(r"^[A-Za-z0-9_.+-]{1,64}$")
-SUFFIX_PATTERN = re.compile(r"^\.[A-Za-z0-9]{1,8}$")
-NAME_PATTERN = re.compile(r"^[A-Za-z_][A-Za-z0-9_:<>]{0,63}$")
+PATH_PATTERN = re.compile(r"[A-Za-z0-9_./-]{1,128}")
+TOKEN_PATTERN = re.compile(r"[A-Za-z0-9_.+-]{1,64}")
+SUFFIX_PATTERN = re.compile(r"\.[A-Za-z0-9]{1,8}")
+NAME_PATTERN = re.compile(r"[A-Za-z_][A-Za-z0-9_:<>]{0,63}")
+SHELL_METACHARACTERS = frozenset(";|&$`<>()\\\n\r")
 QUOTE_LIMIT = 120
-NUMBER_LIMIT = 1_000_000
+COMMAND_LIMIT = 512
+MAX_CRAP_LIMIT = 1000
+INT_LIMIT = 10_000_000
+SECONDS_LIMIT = 86_400
 MISSING = object()
-RETIRED_KEYS = (("mutation", "build"), ("mutation", "test"))
+
+
+def refuse(label):
+    print(f"cpp-quality-gates: invalid value for {label}; refused", file=sys.stderr)
+    raise SystemExit(2)
 
 
 def load(path=None):
@@ -27,36 +38,41 @@ def load(path=None):
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError):
-        warn("config", "file")
-        return {}
-    return data if isinstance(data, dict) else {}
-
-
-def warn(section, key):
-    print(f"cpp-quality-gates: ignored an invalid config value ({section}.{key})", file=sys.stderr)
+        refuse("the config file")
+    if not isinstance(data, dict):
+        refuse("the config file")
+    return data
 
 
 def is_path(value):
-    return isinstance(value, str) and bool(PATH_PATTERN.match(value)) and ".." not in value.split("/") and not value.startswith("/")
+    return isinstance(value, str) and bool(PATH_PATTERN.fullmatch(value)) and ".." not in value.split("/") and not value.startswith("/")
 
 
 def is_token(value):
-    return isinstance(value, str) and bool(TOKEN_PATTERN.match(value))
+    return isinstance(value, str) and bool(TOKEN_PATTERN.fullmatch(value))
 
 
 def is_name(value):
-    return isinstance(value, str) and bool(NAME_PATTERN.match(value))
+    return isinstance(value, str) and bool(NAME_PATTERN.fullmatch(value))
 
 
-def is_number(value):
-    return isinstance(value, (int, float)) and not isinstance(value, bool) and 0 <= value <= NUMBER_LIMIT
+def is_int(value, low=0, high=INT_LIMIT):
+    return isinstance(value, int) and not isinstance(value, bool) and low <= value <= high
 
 
 def is_free_text(value):
     return isinstance(value, str) and 0 < len(value) <= QUOTE_LIMIT and value.isprintable()
 
 
-CHECKS = {"path": is_path, "token": is_token, "number": is_number, "suffix": lambda v: isinstance(v, str) and bool(SUFFIX_PATTERN.match(v)), "text": is_free_text}
+CHECKS = {
+    "path": is_path,
+    "token": is_token,
+    "int": is_int,
+    "seconds": lambda v: is_int(v, 1, SECONDS_LIMIT),
+    "limit": lambda v: isinstance(v, (int, float)) and not isinstance(v, bool) and 0 <= v <= MAX_CRAP_LIMIT,
+    "suffix": lambda v: isinstance(v, str) and bool(SUFFIX_PATTERN.fullmatch(v)),
+    "text": is_free_text,
+}
 
 
 def lookup(section, key, path):
@@ -65,32 +81,38 @@ def lookup(section, key, path):
 
 
 def get(section, key, default, kind, path=None):
-    """One value of KIND (path, token, number, suffix, text) or the default."""
+    """One value of KIND, the default when the setting is absent, a refusal when it is invalid."""
     value = lookup(section, key, path)
     if value is MISSING:
         return default
-    if CHECKS[kind](value):
-        return value
-    warn(section, key)
-    return default
+    if not CHECKS[kind](value):
+        refuse(f"{section}.{key}")
+    return value
 
 
 def get_list(section, key, default, kind, path=None):
-    """A non-empty list whose every item is of KIND, or the default."""
+    """A non-empty list whose every item is of KIND, the default when absent, a refusal otherwise."""
     value = lookup(section, key, path)
     if value is MISSING:
         return default
-    if isinstance(value, list) and value and all(CHECKS[kind](item) for item in value):
-        return value
-    warn(section, key)
-    return default
+    if not (isinstance(value, list) and value and all(CHECKS[kind](item) for item in value)):
+        refuse(f"{section}.{key}")
+    return value
 
 
-def report_retired(path=None):
-    """Settings that used to carry shell commands are never run; say so by key name."""
-    for section, key in RETIRED_KEYS:
-        if lookup(section, key, path) is not MISSING:
-            print(f"cpp-quality-gates: {section}.{key} in the config is not run; pass --{key} on the command line", file=sys.stderr)
+def split_command(text, label):
+    """Argument list for a command string; refused when it needs a shell to mean what it says."""
+    if not isinstance(text, str) or not text.strip() or len(text) > COMMAND_LIMIT or SHELL_METACHARACTERS & set(text):
+        refuse(label)
+    try:
+        return shlex.split(text)
+    except ValueError:
+        refuse(label)
+
+
+def get_command(section, key, path=None):
+    value = lookup(section, key, path)
+    return None if value is MISSING else split_command(value, f"{section}.{key}")
 
 
 def quote(text):
@@ -108,13 +130,16 @@ def show_name(text):
 
 
 def main(argv):
-    if len(argv) != 5:
-        sys.exit("usage: qg_config.py SECTION KEY DEFAULT path|paths|token|number")
-    section, key, default, kind = argv[1:]
     config = os.environ.get("QG_CONFIG")
+    if len(argv) == 4 and argv[1] == "check":
+        if not CHECKS[argv[2]](argv[3]):
+            refuse(f"the {argv[2]} argument")
+        return
+    if len(argv) != 5:
+        sys.exit("usage: qg_config.py SECTION KEY DEFAULT path|paths|token  |  qg_config.py check path|token VALUE")
+    section, key, default, kind = argv[1:]
     if kind == "paths":
-        value = get_list(section, key, default.split(), "path", config)
-        print(" ".join(value))
+        print("\n".join(get_list(section, key, default.split(), "path", config)))
     else:
         print(get(section, key, default, kind, config))
 

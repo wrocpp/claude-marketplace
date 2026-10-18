@@ -12,10 +12,15 @@ TEST; the file is restored afterwards (also on Ctrl-C). Each mutant is classifie
   survived      BUILD and TEST passed: either add a test or triage the mutant
 
 Options (most also read from the "mutation" section of .claude/cpp-quality-gates.json, validated):
-  --build CMD / --test CMD   shell commands from YOUR command line; BUILD must also pass unmutated.
-                             The config never supplies shell commands: with mutation.build_dir,
-                             mutation.targets and mutation.tests it runs the fixed commands
-                             "cmake --build DIR --target T..." and "ctest --test-dir DIR -R ^(names)$"
+  --build CMD / --test CMD   BUILD must also pass on the unmutated tree. Commands are split into an
+                             argument list and run WITHOUT a shell; one containing ; | & $ ` < > ( ) or
+                             a backslash or newline is refused. The same holds for mutation.build and
+                             mutation.test in the config, which run with your privileges: review the
+                             config of an unfamiliar repo first, or use mutation.build_dir with
+                             mutation.targets and mutation.tests, which run the fixed commands
+                             "cmake --build DIR --target T..." and "ctest --test-dir DIR -R ^(names)$".
+                             The exact argument lists are printed before anything runs.
+  --dry-run                  print them and stop
   --changed-lines BASE_REF   mutate only lines changed against git ref BASE_REF
   --lines 10-20,31           mutate only these lines
   --sample N --seed S        run N mutants chosen with seed S (0 runs all); default 200 and 1
@@ -34,6 +39,7 @@ import os
 import pathlib
 import random
 import re
+import shlex
 import shutil
 import signal
 import subprocess
@@ -61,9 +67,9 @@ UNCOMPILABLE = "uncompilable"
 SURVIVED = "survived"
 
 
-def run(command, timeout):
+def run(argv, timeout):
     try:
-        done = subprocess.run(command, shell=isinstance(command, str), capture_output=True, text=True, timeout=timeout)
+        done = subprocess.run(argv, shell=False, capture_output=True, text=True, timeout=timeout)
     except subprocess.TimeoutExpired:
         return None, ""
     return done.returncode, done.stdout + done.stderr
@@ -173,6 +179,14 @@ def fixed_commands(arguments):
     return build, test
 
 
+def commands_of(arguments):
+    """BUILD and TEST as argument lists, from the command line, then the config. No shell ever runs them."""
+    build = qg_config.split_command(arguments.build, "--build") if arguments.build else qg_config.get_command("mutation", "build", arguments.config)
+    test = qg_config.split_command(arguments.test, "--test") if arguments.test else qg_config.get_command("mutation", "test", arguments.config)
+    configured_build, configured_test = fixed_commands(arguments)
+    return build or configured_build, test or configured_test
+
+
 def parse(argv):
     parser = argparse.ArgumentParser(description="Mutation testing of one source file with universalmutator")
     parser.add_argument("source")
@@ -189,23 +203,21 @@ def parse(argv):
     parser.add_argument("--build-timeout", type=int)
     parser.add_argument("--test-timeout", type=int)
     parser.add_argument("--config")
+    parser.add_argument("--dry-run", action="store_true", help="print the commands that would run and stop")
     return parser.parse_args(argv)
 
 
 def settings_of(arguments):
-    qg_config.report_retired(arguments.config)
-    configured_build, configured_test = fixed_commands(arguments)
-    arguments.build = arguments.build or configured_build
-    arguments.test = arguments.test or configured_test
+    arguments.build, arguments.test = commands_of(arguments)
     if not arguments.build or not arguments.test:
-        sys.exit("mutate: pass --build and --test, or set mutation.build_dir, mutation.targets and mutation.tests in .claude/cpp-quality-gates.json")
-    arguments.sample = int(option(arguments, "sample", "sample", DEFAULT_SAMPLE, "number"))
-    arguments.seed = int(option(arguments, "seed", "seed", DEFAULT_SEED, "number"))
+        sys.exit("mutate: pass --build and --test, or set mutation.build / mutation.test, or mutation.build_dir with mutation.targets and mutation.tests")
+    arguments.sample = int(option(arguments, "sample", "sample", DEFAULT_SAMPLE, "int"))
+    arguments.seed = int(option(arguments, "seed", "seed", DEFAULT_SEED, "int"))
     arguments.triage = option(arguments, "triage", "triage", DEFAULT_TRIAGE, "path")
     arguments.ignore = option(arguments, "ignore", "ignore", DEFAULT_IGNORE, "path")
     arguments.marker = option(arguments, "marker", "compile_time_marker", DEFAULT_MARKER, "text")
-    arguments.build_timeout = int(option(arguments, "build_timeout", "build_timeout", DEFAULT_BUILD_TIMEOUT_SECONDS, "number"))
-    arguments.test_timeout = int(option(arguments, "test_timeout", "test_timeout", DEFAULT_TEST_TIMEOUT_SECONDS, "number"))
+    arguments.build_timeout = int(option(arguments, "build_timeout", "build_timeout", DEFAULT_BUILD_TIMEOUT_SECONDS, "seconds"))
+    arguments.test_timeout = int(option(arguments, "test_timeout", "test_timeout", DEFAULT_TEST_TIMEOUT_SECONDS, "seconds"))
     return arguments
 
 
@@ -266,6 +278,11 @@ def main(argv):
     if not source.is_file():
         sys.exit(f"mutate: {source} is not a file")
     lines, scope = select_lines(arguments, source)
+
+    print("build: " + shlex.join(arguments.build), flush=True)
+    print("test:  " + shlex.join(arguments.test), flush=True)
+    if arguments.dry_run:
+        return 0
 
     scratch = pathlib.Path(tempfile.mkdtemp(prefix="mutate-"))
     atexit.register(shutil.rmtree, scratch, True)

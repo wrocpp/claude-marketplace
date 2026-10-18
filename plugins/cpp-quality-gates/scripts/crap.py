@@ -74,7 +74,7 @@ def main(argv):
         print("crap: the lizard module is missing (pip install lizard)", file=sys.stderr)
         return 2
     roots = arguments.roots or qg_config.get_list("crap", "roots", ["src"], "path", arguments.config)
-    limit = arguments.max if arguments.max is not None else qg_config.get("crap", "max", DEFAULT_MAX, "number", arguments.config)
+    limit = arguments.max if arguments.max is not None else qg_config.get("crap", "max", DEFAULT_MAX, "limit", arguments.config)
     suffixes = tuple(qg_config.get_list("crap", "suffixes", list(DEFAULT_SUFFIXES), "suffix", arguments.config))
     report = coverage_by_line(json.loads(pathlib.Path(arguments.coverage_json).read_text(encoding="utf-8")))
     scored = []
