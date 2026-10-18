@@ -13,7 +13,7 @@
     {
       "name": "cpp26-guard",
       "source": "./plugins/cpp26-guard",
-      "description": "Keep C++26 code free of hand-written copies of definitions: reflection instead of enum-to-string switches, name tables, flag chains and key/member blocks, with concepts, import std, format and print and a comment policy. Skills, a pre-write advisory hook and tested lints with allowance files.",
+      "description": "Keep C++26 free of hand-written copies of definitions. Skills reflect-dont-hand-write (derive enum names, name lookups, flag parsing and member lists with std::meta reflection, with a tested reference header and a GCC 16.2 evidence table) and cpp26-idioms (constrained templates, import std, std::format and std::print, one append instead of a chain, opt-in comment policy), advisory pre-write and post-write hooks, two tested lints with allowance files, configured by .claude/cpp26-guard.json.",
       "version": "0.1.0",
       "author": {
         "name": "Wro.cpp",
@@ -24,8 +24,10 @@
         "cpp",
         "cpp26",
         "reflection",
+        "std-meta",
         "concepts",
         "modules",
+        "gcc-16",
         "lint",
         "hooks"
       ]
@@ -33,7 +35,7 @@
     {
       "name": "cpp-quality-gates",
       "source": "./plugins/cpp-quality-gates",
-      "description": "Make 'done' mean measured: a sanitizer matrix, a CRAP gate, mutation testing, coverage, compile-time undefined-behaviour checks and compiler capability tests, as skills with runnable scripts and CMake and CI templates.",
+      "description": "Make 'done' mean measured for C++: skills for a sanitizer matrix (ASan, UBSan, TSan, LSan; Linux-in-a-container for macOS), a CRAP gate (lizard + gcovr), mutation testing (universalmutator harness with triage), and a compiler capability matrix, with runnable scripts, CMake presets and CI templates.",
       "version": "0.1.0",
       "author": {
         "name": "Wro.cpp",
@@ -43,9 +45,14 @@
       "keywords": [
         "cpp",
         "sanitizers",
+        "asan",
+        "tsan",
+        "ubsan",
         "coverage",
         "mutation-testing",
         "crap",
+        "cyclomatic-complexity",
+        "capability-tests",
         "ci",
         "cmake"
       ]
@@ -53,7 +60,7 @@
     {
       "name": "cpp-conventions",
       "source": "./plugins/cpp-conventions",
-      "description": "Evidence-backed C++ conventions: designated initialisers, no needless copies, cppreference lookup, quantities as types and no magic numbers, each rule with compiler fixtures and an advisory pre-write scanner.",
+      "description": "Evidence-backed C++ conventions as five skills - designated-init (one braced expression per value), no-needless-copies (views, sinks, ownership boundaries), cppreference (confirm a rule and cite the page, cached offline), units (std::chrono and mp-units quantities, one wall clock) and no-magic-numbers (name every number once) - with compiler fixtures for GCC and Clang and an advisory pre-write hook that scans new C++ text for copy smells and bare numbers.",
       "version": "0.1.0",
       "author": {
         "name": "Wro.cpp",
@@ -62,12 +69,18 @@
       "license": "MIT",
       "keywords": [
         "cpp",
+        "cpp20",
+        "cpp23",
         "designated-initializers",
         "string_view",
         "span",
+        "copy-elision",
         "units",
+        "mp-units",
+        "chrono",
         "cppreference",
-        "magic-numbers"
+        "magic-numbers",
+        "hook"
       ]
     },
     {
@@ -91,7 +104,7 @@
     {
       "name": "cpp-fuzzing",
       "source": "./plugins/cpp-fuzzing",
-      "description": "Property-based and fuzz testing recipes for C++: one property function reused by AFL++ harnesses, corpus replay at compile time with #embed, bounded-exhaustive constexpr checks and compile-time undefined-behaviour detection.",
+      "description": "One property function reused by every kind of C++ check, as three skills and a working starter: one-property-many-checks (unit tests, AFL++ and compile-time undefined-behaviour checks share one constexpr property), compile-time-corpus-and-exhaustive (#embed corpus replay and bounded-exhaustive static_asserts with budget and memory guidance), afl-harness (replay-and-AFL++ harness, Docker recipe, time-boxed campaign, crash triage).",
       "version": "0.1.0",
       "author": {
         "name": "Wro.cpp",
@@ -100,11 +113,15 @@
       "license": "MIT",
       "keywords": [
         "cpp",
+        "cpp26",
         "fuzzing",
         "afl",
+        "aflplusplus",
         "property-testing",
         "constexpr",
-        "ub"
+        "embed",
+        "undefined-behavior",
+        "cmake"
       ]
     },
     {
