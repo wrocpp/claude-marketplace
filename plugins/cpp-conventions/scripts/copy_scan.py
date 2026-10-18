@@ -30,7 +30,7 @@ import re
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-from cpp_text import Finding, has_marker, is_cpp_path, line_of, mask  # noqa: E402
+from cpp_text import Finding, has_marker, is_cpp_path, line_of, mask, safe_identifier  # noqa: E402
 
 RULE = "copies"
 MARKER = "copy-ok"
@@ -85,26 +85,28 @@ def scan(text, path=""):
         raw.append(Finding(line_of(code, offset), rule, message))
 
     for hit in PARAM.finditer(code):
-        name = hit.group("name")
+        name = safe_identifier(hit.group("name"), "the parameter")
+        kind = safe_identifier(hit.group("type"), "the container type")
         borrow = "std::string_view" if "string" in hit.group("type") else "std::span<const T>"
-        if stores_param(code, name, hit.end()):
+        if stores_param(code, hit.group("name"), hit.end()):
             add(hit.start(), "sink-copy", f"`{name}` is stored by copy: take it by value and std::move it into the member (sink parameter)")
         else:
-            add(hit.start(), "param-const-ref", f"`const {hit.group('type')}& {name}` only borrows: prefer {borrow} unless it is stored or needs a terminator")
+            add(hit.start(), "param-const-ref", f"`const {kind}& {name}` only borrows: prefer {borrow} unless it is stored or needs a terminator")
     for hit in RANGE_FOR.finditer(code):
-        add(hit.start(), "range-for-copy", f"loop variable `{hit.group('name')}` copies every element: write `const {hit.group('type')}&`")
+        add(hit.start(), "range-for-copy", f"loop variable `{safe_identifier(hit.group('name'), 'the variable')}` copies every element: write `const {safe_identifier(hit.group('type'), 'the type')}&`")
     for hit in SUBSTR.finditer(code):
         add(hit.start(), "substr-copy", "substr on std::string allocates: take a std::string_view first when you only look at the piece")
     for hit in RETURN_MOVE.finditer(code):
         name = hit.group("name")
+        shown = safe_identifier(name, "the local")
         if local_declaration(code[: hit.start()], name) and not re.search(r"&&\s*" + re.escape(name) + r"\b", code):
-            add(hit.start(), "return-move", f"`return std::move({name});` blocks copy elision of a local: return `{name}`")
+            add(hit.start(), "return-move", f"`return std::move({shown});` blocks copy elision of a local: return `{shown}`")
     for hit in VIEW_TEMP.finditer(code):
         add(hit.start(), "view-of-temporary", "a view of a temporary dangles at the end of the statement: keep the owner in a named variable")
     for hit in VIEW_RETURN.finditer(code):
         add(hit.end(), "view-return-temp", "returning a view of a std::string built here dangles: return std::string")
     for hit in COPY_FROM_NAME.finditer(code):
-        add(hit.start("type"), "copy-from-name", f"copy of `{hit.group('src')}`: bind a reference or view unless this is an ownership boundary you can name")
+        add(hit.start("type"), "copy-from-name", f"copy of `{safe_identifier(hit.group('src'), 'a name')}`: bind a reference or view unless this is an ownership boundary you can name")
     for hit in CSTR_ROUNDTRIP.finditer(code):
         add(hit.start(), "cstr-roundtrip", "std::string(x.c_str()) copies bytes you already hold in a std::string")
     for hit in REF_CAPTURE.finditer(code):

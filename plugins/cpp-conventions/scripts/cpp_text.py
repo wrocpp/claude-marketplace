@@ -164,6 +164,58 @@ def find_config(start_dirs):
     return {}
 
 
+IDENTIFIER = re.compile(r"[A-Za-z_][A-Za-z0-9_:<>]{0,63}")
+NUMBER_TEXT = re.compile(r"(?:0[xX][0-9a-fA-F']+|[0-9][0-9.'eE+-]*)[A-Za-z]{0,8}")
+PATH_TEXT = re.compile(r"[A-Za-z0-9_./-]{1,128}")
+MAX_NUMBER_TEXT = 24
+MAX_ALLOW_ENTRIES = 64
+RULE_FLAGS = ("block", "disable")
+RULES = ("copies", "numbers")
+
+
+def safe_identifier(text, fallback):
+    """Text taken from source or config may reach Claude only if it is a plain identifier."""
+    return text if IDENTIFIER.fullmatch(text) else fallback
+
+
+def safe_number(text):
+    return text if len(text) <= MAX_NUMBER_TEXT and NUMBER_TEXT.fullmatch(text) else "a number"
+
+
+def safe_path(text, fallback="the file"):
+    ok = PATH_TEXT.fullmatch(text) and not text.startswith("/") and ".." not in text.split("/")
+    return text if ok else fallback
+
+
+def validate_config(raw):
+    """Return (config, ignored): only booleans and finite numbers survive; nothing is ever echoed."""
+    clean = {rule: {} for rule in RULES}
+    ignored = not isinstance(raw, dict) and bool(raw)
+    for rule in RULES:
+        section = raw.get(rule) if isinstance(raw, dict) else None
+        if section is None:
+            continue
+        if not isinstance(section, dict):
+            ignored = True
+            continue
+        for flag in RULE_FLAGS:
+            if flag in section:
+                if isinstance(section[flag], bool):
+                    clean[rule][flag] = section[flag]
+                else:
+                    ignored = True
+        if rule == "numbers" and "allow" in section:
+            allow = section["allow"]
+            numeric = isinstance(allow, list) and len(allow) <= MAX_ALLOW_ENTRIES and all(
+                isinstance(n, (int, float)) and not isinstance(n, bool) and n == n and abs(n) != float("inf") for n in allow
+            )
+            if numeric:
+                clean[rule]["allow"] = list(allow)
+            else:
+                ignored = True
+    return clean, ignored
+
+
 def rule_config(config, rule):
     value = config.get(rule, {})
     return value if isinstance(value, dict) else {}

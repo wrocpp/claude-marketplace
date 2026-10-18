@@ -18,7 +18,7 @@ import re
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-from cpp_text import Finding, has_marker, is_cpp_path, line_of, mask  # noqa: E402
+from cpp_text import Finding, has_marker, is_cpp_path, line_of, mask, safe_number  # noqa: E402
 
 RULE = "numbers"
 MARKER = "magic-ok"
@@ -133,7 +133,7 @@ def scan(text, path="", allow=()):
             if exempt(prefix, value, line_text, in_test, allowed) or has_marker(lines, number, MARKER):
                 continue
             findings.append(
-                Finding(number, RULE, f"bare number {token.group('num')}: name it once (constexpr, with its source) and use the name, or write `// {MARKER}: <reason>`")
+                Finding(number, RULE, f"bare number {safe_number(token.group('num'))}: name it once (constexpr, with its source) and use the name, or write `// {MARKER}: <reason>`")
             )
     return findings
 

@@ -32,6 +32,8 @@ Configuration, in the project's `.claude/cpp-conventions.json` (all optional):
 
 Advisory by default. `"block": true` makes that scanner stop the write (stderr, exit 2). A finding is silenced on the line with `// copy-ok: <ownership boundary>` or `// magic-ok: <where the number comes from>`; the reason is required. `CPP_CONVENTIONS_OFF=1` switches the hook off. The hook never fails an edit: any error in it exits 0.
 
+The hook treats `.claude/cpp-conventions.json` and the edited source as untrusted. Only booleans and numbers are read from the config; an invalid value is ignored and the report says so without quoting it. Source text is never quoted: findings carry fixed sentences with at most a plain identifier, a number or a safe file name substituted.
+
 Pairs with the separate `tidy-agent` plugin, which runs clang-tidy on every edit. This plugin does not run clang-tidy and does not duplicate that hook: the scanners read text, clang-tidy reads types.
 
 ## Requirements

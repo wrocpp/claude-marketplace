@@ -15,6 +15,7 @@ sys.path.insert(0, str(PLUGIN_ROOT / "scripts"))
 
 BLOCK_EXIT = 2
 REPORT_LIMIT = 12
+IGNORED_NOTE = "A value in .claude/cpp-conventions.json was ignored (invalid); defaults were used."
 
 
 def new_texts(tool_input):
@@ -38,15 +39,18 @@ def run_scanners(path, text, config):
         reports.append(("copies", bool(copies.get("block")), copy_scan.scan(text, path)))
     numbers = rule_config(config, "numbers")
     if not numbers.get("disable"):
-        allow = [n for n in numbers.get("allow", []) if isinstance(n, (int, float))]
+        allow = numbers.get("allow", [])
         reports.append(("numbers", bool(numbers.get("block")), number_scan.scan(text, path, allow)))
     return reports
 
 
 def render(path, reports):
+    from cpp_text import safe_path
+
+    shown_name = safe_path(os.path.basename(path), "the file")
     lines = []
     for _, _, findings in reports:
-        lines.extend(f.render(os.path.basename(path)) for f in findings)
+        lines.extend(f.render(shown_name) for f in findings)
     shown = lines[:REPORT_LIMIT]
     if len(lines) > REPORT_LIMIT:
         shown.append(f"... and {len(lines) - REPORT_LIMIT} more")
@@ -54,7 +58,7 @@ def render(path, reports):
 
 
 def main():
-    from cpp_text import env_off, find_config, is_cpp_path
+    from cpp_text import env_off, find_config, is_cpp_path, validate_config
 
     if env_off():
         return 0
@@ -63,7 +67,7 @@ def main():
     path = tool_input.get("file_path") or ""
     if not path or not is_cpp_path(path):
         return 0
-    config = find_config([os.path.dirname(path), payload.get("cwd"), os.environ.get("CLAUDE_PROJECT_DIR")])
+    config, ignored = validate_config(find_config([os.path.dirname(path), payload.get("cwd"), os.environ.get("CLAUDE_PROJECT_DIR")]))
     reports = []
     for text in new_texts(tool_input):
         reports.extend(run_scanners(path, text, config))
@@ -71,6 +75,8 @@ def main():
     if not reports:
         return 0
     body = render(path, reports)
+    if ignored:
+        body += "\n" + IGNORED_NOTE
     blocking = any(block for _, block, _ in reports)
     if blocking:
         print("cpp-conventions (blocking, per .claude/cpp-conventions.json):\n" + body, file=sys.stderr)
