@@ -1,0 +1,5 @@
+{
+  "roots": ["src"],
+  "modules": true,
+  "rules": {"comment": true}
+}

@@ -1,0 +1,3 @@
+# path|rule|text fragment|reason
+src/status.cppm|legacy-io|std::fprintf|a violation handler must not allocate
+src/status.cppm|std-include|<vector>|pending: move behind import std
