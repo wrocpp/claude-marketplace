@@ -1,0 +1,11 @@
+{
+  "crap": {"roots": ["src"], "max": 8},
+  "coverage": {"preset": "coverage", "build_dir": "build/coverage", "filters": ["src/"]},
+  "mutation": {
+    "build": "cmake --build build/mutate --target saturate_test",
+    "test": "build/mutate/saturate_test",
+    "triage": ".claude/mutation_triage.txt",
+    "ignore": ".claude/mutation_ignore.txt",
+    "sample": 0
+  }
+}
