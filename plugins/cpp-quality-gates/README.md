@@ -10,7 +10,7 @@ Install: `claude plugin marketplace add wrocpp/claude-marketplace && claude plug
 |---|---|
 | `sanitizer-matrix` | run ASan + UBSan, TSan and LSan through CMake presets; know what works on macOS and Linux; run Linux checks from a Mac in a container |
 | `crap-gate` | score every function with CRAP = CC^2 * (1 - cov)^3 + CC from lizard and gcovr, and split what exceeds 8 |
-| `mutation-testing` | mutate one file with universalmutator, kill or triage the survivors, write the one-line `Mutation:` summary for a merge request |
+| `mutation-testing` | mutate one file with universalmutator, kill or triage the survivors, write the one-line `Mutation:` summary for a merge request; keep a hand-listed mutant script from going stale |
 | `capability-matrix` | pin the compiler features the project relies on as tiny probes run by ctest, including must-fail probes |
 
 ## Requirements

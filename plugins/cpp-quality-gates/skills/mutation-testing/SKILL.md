@@ -44,4 +44,14 @@ or `Mutation: none, because <reason>` (docs-only change, no testable behaviour).
 
 Mutants are regex edits, not AST edits, so **many do not compile**: in the bundled sample 34 of 60 were uncompilable and give no signal. Code that mutants break at compile time (templates with concepts, `constexpr` guarded by `static_assert`) is checked by the compiler, not by the run time tests: report it as such, never as "killed by tests". A file with few runnable mutants says little; a score is a list of questions, not a grade.
 
+## A hand-listed mutant script goes stale
+
+When the mutants are written by hand as `(name, file, old text, new text)` and applied by text replacement, a refactor that rewrites the old text breaks the list without any test failing. In reflect-moc, after a row index replaced a model's own key list, 17 of 59 hand-listed mutants no longer matched the source, and the runner stopped at the first one it could not apply, so the script had been unusable for a whole round and nobody noticed. Three rules:
+
+1. **Check every mutant against the source before running any**, and list all the ones that do not match, not the first. Run that check in CI; it takes a second.
+2. **A mutant that does not compile gives no signal.** Under `-Werror` an unused parameter after the edit is the usual reason (a deleted statement leaves `key` unused): write the mutant so the variable is still used (`(void)key;`), then rerun it. Six of 37 new mutants needed this.
+3. **Write down why a survivor is equivalent, next to the mutant**, not in the commit alone: a stale hash entry that the next insert overwrites, dead slots never compacted, an emptied key kept.
+
+The same list is also where the missing test shows up: a mutant for "takes rows in the caller's order" only dies when a test passes the keys in a different order than the rows.
+
 Formats, flags, evidence: [references/harness.md](references/harness.md). The triage file format: `${CLAUDE_PLUGIN_ROOT}/templates/mutation_triage.txt`.

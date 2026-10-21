@@ -26,3 +26,5 @@ Bundled sample `src/saturate.cpp` (a saturating add, 8 tests), full run, `tests/
 | 2026-10-18 | g++ 16.2.0 (Homebrew), macOS arm64 | 1.14.1 | 60 | 23 | 3 (all equivalent: swapped commutative parameters, `<` to `<=` and `>` to `>=` at the bound) | 34 |
 
 Cost: about 10 s for 60 mutants of a three-line function with Ninja, so the cost is the build, not the mutation. Keep the mutation build target small (one test target), as the sample does.
+
+Hand-listed mutants, reflect-moc `scripts/mutate-observable-models.py` (GCC 16.2, Linux image, 2026-10-21): before the repair 17 of 59 mutants no longer matched the sources; after it, 96 mutants: 93 killed, 3 survived (all judged equivalent), 0 not viable, once six that did not compile (an unused parameter under `-Werror`) were rewritten. Source: https://github.com/wrocpp/reflect-moc/pull/18
