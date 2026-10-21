@@ -33,6 +33,20 @@ qt_cpp_test(contract_correct_model cpp/contract_correct_model.cpp)
 qt_cpp_test(contract_flaws_detected cpp/contract_flaws_detected.cpp)
 qt_cpp_test(row_index cpp/row_index.cpp)
 qt_cpp_test(list_ranges_and_edits cpp/list_ranges_and_edits.cpp)
+qt_cpp_test(dependent_base_connect cpp/traps/dependent_base_connect.cpp)
+qt_cpp_test(normalized_names cpp/traps/normalized_names.cpp)
+# What must compile: the controls of the fixtures that must not.
+file(GLOB ACCEPTED CONFIGURE_DEPENDS cpp/accept/*.cpp)
+add_library(accepted OBJECT ${ACCEPTED})
+target_link_libraries(accepted PRIVATE list_signals Qt6::Core)
+
+# Two translation units that agree, linked with the flags that make a disagreement an error.
+add_executable(odr_consistent cpp/odr/a.cpp cpp/odr/b.cpp)
+target_compile_options(odr_consistent PRIVATE -flto -Wodr -Wlto-type-mismatch)
+target_link_options(odr_consistent PRIVATE -flto -Wodr -Wlto-type-mismatch -Werror)
+set_target_properties(odr_consistent PROPERTIES AUTOMOC OFF)
+add_test(NAME odr_consistent COMMAND odr_consistent)
+
 # What must not compile (or link): one target each, built only by tests/check_reject.py, which reads the
 # `// expect-error: <regex>` line at the top of the file and fails when the build succeeds or says something else.
 file(GLOB REJECTED CONFIGURE_DEPENDS cpp/reject/*.cpp)
@@ -45,3 +59,7 @@ foreach(source ${REJECTED})
     set_target_properties(reject_${stem} PROPERTIES AUTOMOC OFF)
   endif()
 endforeach()
+add_executable(reject_odr_violation EXCLUDE_FROM_ALL cpp/reject/odr_violation/a.cpp cpp/reject/odr_violation/b.cpp)
+target_compile_options(reject_odr_violation PRIVATE -flto -Wodr -Wlto-type-mismatch)
+target_link_options(reject_odr_violation PRIVATE -flto -Wodr -Wlto-type-mismatch -Werror)
+set_target_properties(reject_odr_violation PROPERTIES AUTOMOC OFF)
