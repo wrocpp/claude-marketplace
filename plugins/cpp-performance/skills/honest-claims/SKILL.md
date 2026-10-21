@@ -12,7 +12,8 @@ The measurement is the easy part. These rules are about the sentence written aft
 3. **Report the cost on the other side too.** The faster design was 112 bytes per container against 24, its binary 27 percent larger on x86_64 (189,760 against 149,088 bytes), and one translation unit took 3.2 s longer to compile (9.83 against 6.61 s), within 4 percent of the alternative once moc and its output were counted. A claim with only the benefit is an advertisement.
 4. **Correct by replacing.** When a number is wrong, change the sentence, the table and the post where it stands, and say in the commit what changed and why. Do not add a new figure beside the old one: a reader finds the first and stops. The old claim in the run behind this plugin was removed, not left beside the new one.
 5. **Label what was measured before a change and after.** A table that mixes figures from before and after a fix reads as one result. Say which rows were measured with which version ("the tables above used the `QList` key list; read the removal rows in that light"), the machine, the compiler, the runs and the load.
-6. **Say what was not measured.** One compiler, one machine for the main run, no view attached, no hardware counters, the mechanism not identified. Put it in a section of its own, not a footnote.
+6. **Two independently written implementations are not a controlled comparison.** A spec was regenerated twice by two fresh agents, once with `QVariant` keys and once with typed signals, and the same benchmark source ran against both. Per entry the two models do the same work and typed was 16 to 42 percent faster, but the batch and reset rows also differ in model code, so a gap there cannot be put down to the signal. `resetWith` read 23 to 29 percent slower on a busy Mac and 8 percent slower on x86_64; the cause was never found. Say which rows are comparable, label the others "different code", and do not draw the conclusion the first design question wanted ([benchmark-hygiene](../benchmark-hygiene/SKILL.md) rule 2).
+7. **Say what was not measured.** One compiler, one machine for the main run, no view attached, no hardware counters, the mechanism not identified. Put it in a section of its own, not a footnote.
 
 ## Before you publish
 
@@ -20,6 +21,7 @@ The measurement is the easy part. These rules are about the sentence written aft
 - [ ] A quiet re-run agrees, and the load average is in the write-up.
 - [ ] Ratio and absolute cost both stated; the other side's cost stated.
 - [ ] Numbers carry the machine, compiler, runs and a run link; old figures are replaced.
+- [ ] Rows that compare two separately written implementations are labelled, not read as one design question.
 - [ ] "Not measured" is written down.
 
 The numbers this plugin was built from, with the CI run behind each, are in [references/evidence.md](references/evidence.md). They were measured on those runs only.

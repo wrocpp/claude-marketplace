@@ -16,7 +16,7 @@ A baseline that is timed must first pass the same random-driver test as the code
 
 ## 2. A controlled twin
 
-Keep everything but the one difference identical: the same row logic, the same driver, the same data. Then the costs both sides share cancel and the difference left is the one being asked about. If a second thing differs (a different container, a different allocation pattern), the ratio answers neither question.
+Keep everything but the one difference identical: the same row logic, the same driver, the same data. Then the costs both sides share cancel and the difference left is the one being asked about. If a second thing differs (a different container, a different allocation pattern), the ratio answers neither question. The same holds when two trees are written separately, by two people or two agents: their row logic differs, so only the rows whose work is identical by construction (here a single insert, replace or remove) are comparable, and the rest are reported as "different code" ([honest-claims](../honest-claims/SKILL.md) rule 6).
 
 ## 3. Alternate the designs; report median, spread and load
 
