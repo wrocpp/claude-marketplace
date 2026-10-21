@@ -1,0 +1,27 @@
+# Evidence
+
+Where the numbers in the skills come from: the reflect-moc repository (https://github.com/wrocpp/reflect-moc), the benchmark of its typed-signal item models against a QVariant-split twin, 2026-10-20 and 21. Background: https://wrocpp.github.io/posts/qt-class-template-typed-signals-without-moc/
+
+**Every figure is measured on the run or machine named in its row, on those runs only.** None of it is a statement about other CPUs, compilers or Qt versions. The fixtures of this plugin (`tests/`) are separate evidence for the mechanisms; they assert no speeds.
+
+| Rule | What was measured | Where |
+|---|---|---|
+| Gate before timing | A copy of the QVariant twin that announces every removal for row 0 is caught by the same seeded random driver (7 containers, 8 seeds of 4,000 steps) that the twin passes. This plugin's own fixture: the wrong copy passes a fixed smoke test and fails the random driver at seed 1 within the first 100 steps (step 0 with libstdc++, step 78 with libc++). | `tests/qt/measure/observable_bench/run.sh` (reflect-moc); `tests/fixtures/gate` (here) |
+| Spread on a quiet runner | x86_64, 7 runs, load 1 to 2.5: most cells within 2 percent. The busy Mac: do not read under about 10 percent, or under 2 ns. | [run 39480417966](https://github.com/wrocpp/reflect-moc/actions/runs/39480417966) (first x86_64 bench) |
+| Quiet re-run disagrees | First busy-Mac claim "faster or equal in all ten rows"; quiet re-run (Mac load 0.14, x86_64 spread under 2 percent): `replace` 4 to 15 percent slower typed on the Mac, typed 3 to 18 percent faster in all nine rows on x86_64. The tables and posts were corrected in place. | [run 39549191481](https://github.com/wrocpp/reflect-moc/actions/runs/39549191481); docs/measurements.md ("Final numbers") |
+| Size of the cost | A change costs 70 to 320 ns in either design; "within 10 percent" of 200 ns is 20 ns. A bare emit with a receiver: 25 to 35 percent faster typed. | same |
+| The cost on the other side | 112 bytes per container against 24 (static signals: 24). Final run, x86_64: binary 189,760 against 149,088 bytes (27 percent larger), one translation unit 9.83 s against 6.61 s, within 4 percent of the moc build (6.61 s plus 3.04 s) once moc and its output are counted. Mac: 186,568 against 171,856 bytes, 4.54 s against 3.06 s plus 1.32 s. | run 39549191481 |
+| Scaling curve | A linear row lookup read 27,827 ns per change for a replace at 100,000 hash entries, and 2,463 at 10,000; no single-size table showed it. A row index made the same replace 137 ns at 100,000 (203 times cheaper; aarch64, busy, load 2.8 to 6, 5 runs). | docs/measurements.md ("How the cost grows", "After the row index") |
+| Order visited | The first drain benchmark visited keys in insertion order, the best case for a linear scan; a shuffled second order fixed it. | docs/measurements.md |
+| Slowdown ladder, rung 1 and 6 | Hash drain, x86_64: typed 1.11 at 1,000 entries, 1.62 at 10,000, 1.73 at 100,000 (16.1 against 9.3 microseconds per removal); the Mac showed the same direction (1.22, three noisy runs). | run 39480417966 |
+| Rung 4: assembly | Identical four-instruction scan loop in both builds; in the slow build the fused compare and jump crossed a 32-byte boundary (`0x4084fe` to `0x408504`), in the other it did not. | [run 39491260608](https://github.com/wrocpp/reflect-moc/actions/runs/39491260608) (assembly kept) |
+| Rung 5: placement flags | `-Wa,-mbranches-within-32B-boundaries` made both builds equal at 8.2 microseconds per removal; `-falign-loops=64` made both slow, 15.1. AMD EPYC, so not the Intel jcc erratum by name; mechanism not identified. | [run 39492392705](https://github.com/wrocpp/reflect-moc/actions/runs/39492392705) |
+| Rung 6: remove the fragility | `std::vector` and `std::find` for the key list: 7.6 microseconds a removal and 11.9 a replace in both builds; `std::find` about 35 percent faster than `QList::indexOf` on aarch64 (13 against 20 microseconds for 100,000 keys). | [run 39494645687](https://github.com/wrocpp/reflect-moc/actions/runs/39494645687) |
+| Profile without counters | `perf record` with cpu-clock: essentially all samples in the removal and replace slots (46/46 typed, 60/30 QVariant); `strace -c`: start-up calls only; hardware counters `<not supported>` in the runner's VM. | the `investigate/hash-drain` runs (39491260608 and after); docs/measurements.md |
+| Placement mechanism (this plugin) | GCC 16.2, x86_64: a scan loop moved by 0 to 31 bytes; without the flag 15 of 32 offsets put a fused compare-and-jump pair on a 32-byte boundary, with it none does. No timing. | `tests/check_placement.py` |
+
+## What this evidence does not cover
+
+- aarch64 (Apple Silicon, in a Docker image) and GitHub x86_64 AMD EPYC runners only. No Intel numbers, no other compiler, no hardware counters.
+- GCC 16.2 and Qt 6.10.3. The placement effect depends on the compiler's code layout and may not occur with another version.
+- One benchmark family (item models and signals). The rules are general; the figures are not.

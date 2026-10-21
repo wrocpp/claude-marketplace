@@ -141,6 +141,28 @@
         "clang-tidy",
         "static-analysis"
       ]
+    },
+    {
+      "name": "cpp-performance",
+      "source": "./plugins/cpp-performance",
+      "description": "Measure C++ honestly and find where a slowdown comes from: skills for benchmark hygiene (a correctness gate with a deliberately wrong copy before any timing, a controlled twin, alternating runs with median and spread, a scaling curve, the order a benchmark visits things in), a slowdown ladder (isolate, separate the steps, pad, read the assembly, test code placement with -mbranches-within-32B-boundaries, perf and strace without hardware counters), measuring on a CI runner through a workflow_dispatch template, and honest claims (quiet re-run, size of the cost, the cost on the other side, correct by replacing), with runnable scripts and fixtures that need only GCC.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Wro.cpp",
+        "url": "https://wrocpp.github.io"
+      },
+      "license": "MIT",
+      "keywords": [
+        "cpp",
+        "benchmark",
+        "performance",
+        "profiling",
+        "perf",
+        "assembly",
+        "code-placement",
+        "measurement",
+        "ci"
+      ]
     }
   ]
 }
