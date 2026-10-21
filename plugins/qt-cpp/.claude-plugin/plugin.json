@@ -1,0 +1,24 @@
+{
+  "name": "qt-cpp",
+  "version": "0.1.0",
+  "description": "Qt item models written in C++, proved by fixtures - item-model-contract-testing (a view mirror built from signals only, QAbstractItemModelTester in Fatal mode, a seeded random driver against a plain reference, selection and persistent-index survival, a sorting proxy, deliberately wrong adapters as controls), container-to-model-patterns (begin and end paired once in one base, a row index per container order, ranges as one change, edits through the container, one-thread rule, nothrow move), qt-build-traps (dependent-base connect, slots and signals macros, template commas in a test macro, normalized class names, two-unit -Wodr builds, Q_OBJECT in a template) and qml-types-from-cpp - with a text lint for unpaired begin and end calls, a row used as a key, an unqualified connect in a template and boxing at an emit, an advisory PostToolUse hook that runs it, and Qt 6 fixtures built with CMake AUTOMOC and the system compiler.",
+  "author": {
+    "name": "Wro.cpp",
+    "url": "https://wrocpp.github.io"
+  },
+  "homepage": "https://github.com/wrocpp/claude-marketplace/tree/main/plugins/qt-cpp",
+  "repository": "https://github.com/wrocpp/claude-marketplace",
+  "license": "MIT",
+  "keywords": [
+    "cpp",
+    "qt",
+    "qt6",
+    "item-model",
+    "qabstractitemmodel",
+    "model-view",
+    "qml",
+    "moc",
+    "testing",
+    "hook"
+  ]
+}
