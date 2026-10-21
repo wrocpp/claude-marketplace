@@ -31,3 +31,4 @@ endfunction()
 
 qt_cpp_test(contract_correct_model cpp/contract_correct_model.cpp)
 qt_cpp_test(contract_flaws_detected cpp/contract_flaws_detected.cpp)
+qt_cpp_test(row_index cpp/row_index.cpp)
