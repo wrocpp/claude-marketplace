@@ -32,3 +32,16 @@ endfunction()
 qt_cpp_test(contract_correct_model cpp/contract_correct_model.cpp)
 qt_cpp_test(contract_flaws_detected cpp/contract_flaws_detected.cpp)
 qt_cpp_test(row_index cpp/row_index.cpp)
+qt_cpp_test(list_ranges_and_edits cpp/list_ranges_and_edits.cpp)
+# What must not compile (or link): one target each, built only by tests/check_reject.py, which reads the
+# `// expect-error: <regex>` line at the top of the file and fails when the build succeeds or says something else.
+file(GLOB REJECTED CONFIGURE_DEPENDS cpp/reject/*.cpp)
+foreach(source ${REJECTED})
+  get_filename_component(stem ${source} NAME_WE)
+  add_library(reject_${stem} OBJECT EXCLUDE_FROM_ALL ${source})
+  target_link_libraries(reject_${stem} PRIVATE list_signals Qt6::Core)
+  # *_by_moc.cpp is built with moc: the rejection is moc's, and it comes before the compiler runs.
+  if(NOT stem MATCHES "_by_moc$")
+    set_target_properties(reject_${stem} PROPERTIES AUTOMOC OFF)
+  endif()
+endforeach()

@@ -37,5 +37,7 @@ else
     (cd "$build" && ctest --output-on-failure)
     echo "== what the control runs reported"
     "$build/contract_flaws_detected" 2>/dev/null
+    echo "== fixtures that must not compile or link"
+    python3 "$here/check_reject.py" "$build" "$here"
 fi
 
