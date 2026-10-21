@@ -35,6 +35,13 @@ qt_cpp_test(row_index cpp/row_index.cpp)
 qt_cpp_test(list_ranges_and_edits cpp/list_ranges_and_edits.cpp)
 qt_cpp_test(dependent_base_connect cpp/traps/dependent_base_connect.cpp)
 qt_cpp_test(normalized_names cpp/traps/normalized_names.cpp)
+if(TARGET Qt6::Qml)
+  qt_cpp_test(qml_types cpp/qml_types.cpp)
+  target_link_libraries(qml_types PRIVATE Qt6::Qml)
+else()
+  message(STATUS "QT_CPP_SKIP qml_types: Qt6 Qml not found")
+endif()
+
 # What must compile: the controls of the fixtures that must not.
 file(GLOB ACCEPTED CONFIGURE_DEPENDS cpp/accept/*.cpp)
 add_library(accepted OBJECT ${ACCEPTED})
