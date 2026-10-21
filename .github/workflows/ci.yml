@@ -37,7 +37,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        plugin: [cpp26-guard, cpp-quality-gates, cpp-conventions, cpp-modules, cpp-fuzzing, cpp-performance]
+        plugin: [cpp26-guard, cpp-quality-gates, cpp-conventions, cpp-modules, cpp-fuzzing, cpp-performance, qt-cpp]
     steps:
       - uses: actions/checkout@v4
       - name: Install test dependencies
