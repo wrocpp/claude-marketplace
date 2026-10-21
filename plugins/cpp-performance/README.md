@@ -10,10 +10,10 @@ Background: [typed signals without moc](https://wrocpp.github.io/posts/qt-class-
 
 | Skill | Prevents |
 |---|---|
-| `benchmark-hygiene` | timing a wrong baseline (a correctness gate with a deliberately wrong copy that must fail it), comparing designs that differ in two things (a controlled twin), reading one run (alternate, 7 runs, median and min-max, load average), a single size hiding a linear cost (scaling curve), a flattering visiting order |
+| `benchmark-hygiene` | timing a wrong baseline (a correctness gate with a deliberately wrong copy that must fail it), comparing designs that differ in two things, or two trees written separately (a controlled twin), reading one run (alternate, 7 runs, median and min-max, load average), a single size hiding a linear cost (scaling curve), a flattering visiting order |
 | `slowdown-ladder` | blaming the wrong thing for a slowdown in one build: isolate, separate the steps, pad, read the assembly, test code placement with `-Wa,-mbranches-within-32B-boundaries` and `-falign-loops=64`, remove the fragility; perf with cpu-clock and `strace -c` when counters are missing; say what was not measured |
 | `measure-on-ci` | a first figure from a busy laptop: a manual `workflow_dispatch` workflow that takes the script name as an input and runs it in the repository's image |
-| `honest-claims` | a claim from one run, a ratio without the size of the cost, a benefit without the cost on the other side, a correction written beside the old claim instead of over it |
+| `honest-claims` | a claim from one run, a ratio without the size of the cost, a benefit without the cost on the other side, a correction written beside the old claim instead of over it, rows of two separately written implementations read as one design question |
 
 ## Requirements
 
