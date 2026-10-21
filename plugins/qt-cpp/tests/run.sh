@@ -44,3 +44,5 @@ else
     python3 "$here/check_reject.py" "$build" "$here"
 fi
 
+echo "== optional reflect-moc fixtures"
+sh "$here/optional/run.sh"
