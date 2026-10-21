@@ -8,6 +8,8 @@ here=$(cd "$(dirname "$0")" && pwd)
 export PYTHONDONTWRITEBYTECODE=1
 ulimit -c 0 2>/dev/null || true  # the thread and name checks abort a child on purpose; leave no core files
 
+echo "== lint"
+python3 "$here/test_lint.py"
 
 missing() {
     if [ "${WROCPP_CI:-0}" = 1 ]; then
