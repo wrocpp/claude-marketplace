@@ -37,7 +37,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        plugin: [cpp26-guard, cpp-quality-gates, cpp-conventions, cpp-modules, cpp-fuzzing]
+        plugin: [cpp26-guard, cpp-quality-gates, cpp-conventions, cpp-modules, cpp-fuzzing, cpp-performance]
     steps:
       - uses: actions/checkout@v4
       - name: Install test dependencies
@@ -58,3 +58,7 @@ jobs:
       - uses: docker://rhysd/actionlint:1.7.12
         with:
           args: -color
+      - name: Lint the workflow templates that plugins ship
+        uses: docker://rhysd/actionlint:1.7.12
+        with:
+          args: -color plugins/cpp-performance/templates/bench-workflow.yml
