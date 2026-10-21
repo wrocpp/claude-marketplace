@@ -23,7 +23,7 @@ import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 
-from cpp_text import Finding, has_marker, is_cpp_path, line_of, mask, safe_identifier  # noqa: E402
+from cpp_text import Finding, has_marker, is_cpp_path, line_of, mask  # noqa: E402
 
 MARKER = "qt-model-ok"
 MAX_FILE_BYTES = 1_000_000
@@ -263,7 +263,7 @@ def check_row_as_key(masked, lines):
         body = masked[body_start : matching_close(masked, body_start) + 1]
         for constant, offset in rows_returned_for_keys(body, function.group(2)):
             message = (
-                f"data() answers the role {safe_identifier(constant)} with the row. A row shifts under every insert and remove "
+                "data() answers a key-named role with the row. A row shifts under every insert and remove "
                 "with no signal, so a sorting proxy or a view that caches the value goes stale. Offer no key role "
                 "for a list, or return an id that belongs to the entry."
             )

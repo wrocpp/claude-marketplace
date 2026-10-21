@@ -7,7 +7,7 @@ exits 0. A project opts in to blocking per rule with .claude/qt-cpp.json, e.g. {
 the report then goes to stderr with exit 2. Any exception exits 0: a broken hook must never break an edit.
 
 Everything read from the repository is untrusted: the config (only booleans, fixed key names), the source (comments
-and strings are blanked, an excerpt is capped and labelled as data) and the file name (shown only if it is plain).
+and strings are blanked and nothing from it is echoed) and the file name (shown only if it is plain).
 """
 import json
 import os
@@ -44,18 +44,11 @@ def enabled_rules(config):
     return [rule for rule in RULES if not config.get(rule, {}).get("disable")]
 
 
-def excerpt_of(text, line):
-    from cpp_text import mask, quoted_code
-
-    masked = mask(text, drop_preprocessor=True).split("\n")
-    return quoted_code(masked[line - 1]) if 0 < line <= len(masked) else ""
-
-
-def render(path, text, findings):
+def render(path, findings):
     from cpp_text import safe_path
 
     name = safe_path(os.path.basename(path), "the file")
-    shown = [f"{name}:{f.line}: [{f.rule}] {f.message} ({excerpt_of(text, f.line)})" for f in findings[:REPORT_LIMIT]]
+    shown = [f"{name}:{f.line}: [{f.rule}] {f.message}" for f in findings[:REPORT_LIMIT]]
     if len(findings) > REPORT_LIMIT:
         shown.append(f"... and {len(findings) - REPORT_LIMIT} more")
     return "\n".join(shown)
@@ -84,7 +77,7 @@ def main():
     findings = qt_model_lint.scan(text, set(enabled_rules(config)))
     if not findings:
         return 0
-    body = "\n".join([render(path, text, findings)] + notes(readable, wrong_keys))
+    body = "\n".join([render(path, findings)] + notes(readable, wrong_keys))
     if any(config[f.rule].get("block") for f in findings):
         print("qt-cpp (blocking, per .claude/qt-cpp.json):\n" + body, file=sys.stderr)
         return BLOCK_EXIT

@@ -104,31 +104,14 @@ def find_config(start_dirs):
     return None, True
 
 
-MAX_IDENTIFIER_CHARS = 64
-MAX_EXCERPT_CHARS = 120
-IDENTIFIER = re.compile(r"[A-Za-z_][A-Za-z0-9_:<>]{0,%d}" % (MAX_IDENTIFIER_CHARS - 1))
-LONG_WORD = re.compile(r"[A-Za-z0-9_]{%d,}" % (MAX_IDENTIFIER_CHARS + 1))
 PATH_TEXT = re.compile(r"[A-Za-z0-9_./-]{1,128}")
 RULE_FLAGS = ("block", "disable")
 RULES = ("begin-end-pairing", "dependent-base-connect", "row-as-key", "fromvalue-in-template-emit")
 
 
-def safe_identifier(text):
-    """Text taken from source may reach Claude only as a plain identifier of at most 64 characters."""
-    return text if IDENTIFIER.fullmatch(text) else "(name)"
-
-
 def safe_path(text, fallback="the file"):
     ok = PATH_TEXT.fullmatch(text) and not text.startswith("/") and ".." not in text.split("/")
     return text if ok else fallback
-
-
-def quoted_code(text):
-    """An excerpt of untrusted source, taken from code with comments and strings already blanked: control
-    characters removed, an over-long word replaced, capped, and labelled as data."""
-    flat = "".join(c if c.isprintable() else " " for c in text)
-    flat = LONG_WORD.sub("(name)", " ".join(flat.split()))[:MAX_EXCERPT_CHARS]
-    return f'quoted data: "{flat}"'
 
 
 def rule_flags(rule, section):

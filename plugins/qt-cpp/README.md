@@ -50,8 +50,8 @@ out-of-class member definitions of a class template.
 
 The hook treats the repository as untrusted. Only booleans are read from the config, under a fixed vocabulary of rule
 names; a config that cannot be read keeps the defaults and the report adds one fixed sentence. Source is read with comments
-and strings blanked; findings are fixed sentences plus a labelled excerpt (`quoted data: "..."`) of at most 120
-characters, control characters stripped, any word over 64 characters replaced by `(name)`. A file name is shown only if
+and strings blanked, and none of its text is echoed: a finding is the rule id, the line number and a fixed sentence
+from the plugin. A file name is shown only if
 it is plain. The hook starts no process, so no config value can reach a command line. `tests/test_untrusted.py` feeds
 instruction-shaped source, config and file names and asserts none of that text appears in the output.
 
