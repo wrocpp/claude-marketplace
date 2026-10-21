@@ -1,0 +1,54 @@
+# Measure on a CI runner: a second machine, and on GitHub's x86_64 runners a small spread.
+# Copy to .github/workflows/bench.yml. It is manual only (workflow_dispatch) and never a gate: a shared
+# runner is noisy, so the output is a record to read next to the local numbers.
+#
+# A workflow file must exist on the default branch before it can be dispatched. To run the version of
+# the benchmark script that lives on a branch, dispatch with --ref:
+#   gh workflow run bench.yml --ref my-branch -f script=bench/run-bench.sh -f runs=7
+name: bench
+
+on:
+  workflow_dispatch:
+    inputs:
+      script:
+        description: Script to run inside the image, a path under bench/ (bench/run-bench.sh)
+        default: bench/run-bench.sh
+      runs:
+        description: Repetitions of every timing
+        default: '7'
+
+permissions:
+  contents: read
+
+env:
+  IMAGE: bench-image
+
+jobs:
+  bench:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check the inputs
+        env:
+          SCRIPT: ${{ inputs.script }}
+          RUNS: ${{ inputs.runs }}
+        run: |
+          case "$SCRIPT" in bench/*.sh) ;; *) echo "script must be bench/<name>.sh"; exit 1 ;; esac
+          case "$SCRIPT" in *..*|*[!A-Za-z0-9_./-]*) echo "script has a character that is not allowed"; exit 1 ;; esac
+          [ -f "$SCRIPT" ] || { echo "no such script on this ref: $SCRIPT"; exit 1; }
+          case "$RUNS" in ''|*[!0-9]*) echo "runs must be a number"; exit 1 ;; esac
+      # Point this at the repository's own image: the Dockerfile that builds and tests the project.
+      - name: Build the repository's image
+        run: docker build -t "$IMAGE" -f docker/Dockerfile docker
+      - name: Run the script in the image
+        env:
+          SCRIPT: ${{ inputs.script }}
+          RUNS: ${{ inputs.runs }}
+        run: |
+          docker run --rm -e RUNS -v "$PWD":/src:ro -w /src "$IMAGE" bash "$SCRIPT" | tee bench.txt
+          { echo '```'; cat bench.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bench
+          path: bench.txt
